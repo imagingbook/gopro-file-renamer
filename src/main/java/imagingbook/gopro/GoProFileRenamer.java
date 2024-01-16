@@ -1,25 +1,22 @@
 package imagingbook.gopro;
 
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.Dimension;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * GoPro files are named in a weird way, e.g., the continuous segments of
@@ -36,8 +33,8 @@ import javax.swing.UnsupportedLookAndFeelException;
  * 052702-GH020527.MP4
  * 052703-GH030527.MP4
  * ...</pre>
- * thereby preserving the original titles.
- * All associated GoPro file types are renamed, i.e. 
+ * thereby preserving the original names.
+ * All associated GoPro file types are renamed, i.e.,
  * {@code .MP4},
  * {@code .THM} and 
  * {@code .LRV} files.
@@ -48,117 +45,132 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class GoProFileRenamer {
 
 	private static boolean DRY_RUN = false;
+	private static boolean RECURSIVE = true;
+	private static boolean VERBOSE = true;
 
-	// private static String DEFAULT_DIR = "D:\\video\\2023-Vogesen-Schwarzwald";
 	private static String DEFAULT_DIR = Paths.get("").toAbsolutePath().toString();
-	// private static int MAX_NAME_LENGTH = 128;
 
 	public static void main(String[] args) throws Exception {
-		System.out.println("Default directory: " + DEFAULT_DIR);
-		if (DRY_RUN) {
-			System.out.println("This is a DRY RUN only!");
-		}
 		// choose the root directory containing the java files
-		String rootDir = selectDirectory2(DEFAULT_DIR);
+		File rootDir = selectDirectory(DEFAULT_DIR);
 		if (rootDir == null) {
-			System.out.println("Cancelled.");
+			log("Cancelled.");
 			return;
 		}
 
-		System.out.println("Root path: " + rootDir);
-		File fRootDir = new File(rootDir);
-		validateDirectory(fRootDir);
+		if (DRY_RUN) {
+			System.out.println("This is a DRY RUN only - no files will be renamed!");
+		}
 
-		GoProFileRenamer gfrn = new GoProFileRenamer(fRootDir);
-		gfrn.run();
-		Thread.sleep(100);
-		System.out.println("Done.");
+		log("Root directory: " + rootDir.getAbsolutePath());
+		validateDirectory(rootDir);
+
+		new GoProFileRenamer().run(rootDir);
+		log("Done.");
 	}
 
 	// -------------------------------------------------------------------
 
-	private final File fRootDir;
-	List<File> fileList = null;
-	private int fileCount = 0;
+	private int checkedCount = 0;
 	private int renamedCount = 0;
-//	MessageDigest md5Digest;
 
-	GoProFileRenamer(File rootDir) throws NoSuchAlgorithmException {
-		fRootDir = rootDir;
-//		md5Digest = MessageDigest.getInstance("MD5");
-	}
-
-	void run() throws IOException {
-		System.out.println("Renaming files ...");
-		fileList = new ArrayList<File>();
-		processFiles(fRootDir);
-		if (fileCount == 0) {
+	void run(File rootDir) throws IOException {
+		checkedCount = 0;
+		renamedCount = 0;
+		log("Renaming files ...");
+		processDirectory(rootDir);
+		if (checkedCount == 0) {
 			System.out.println("Found no GoPro files to rename!");
 		}
 		else {
-			System.out.println("Files checked: " + fileCount);
-			System.out.println("Files renamed: " + renamedCount);
+			log("Files checked: " + checkedCount);
+			log("Files renamed: " + renamedCount);
 		}
 	}
 
 	/**
 	 * Recursively walk a directory tree and rename all GoPro files found.
-	 * @throws IOException 
-	 * @throws NoSuchAlgorithmException 
+	 * @throws IOException
 	 */
-	private void processFiles(File startDir) throws IOException { // throws FileNotFoundException {
-		fileCount = 0;
-		List<File> filesDirs = Arrays.asList(startDir.listFiles());
-		Iterator<File> filesIter = filesDirs.iterator();
+	private void processDirectory(File dir) throws IOException {
+		log("processing directory: " + dir.getName());
+		File[] allfiles = dir.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return !file.isHidden();	// skip hidden files and directories
+			}
+		});
 
-		while (filesIter.hasNext()) {
-			File file = filesIter.next();
-			fileCount++;
-			String fName = file.getName();
-			//String newName = newName(fName);
-			if (isGoProFile(fName)) {
-				renameFile(file);
+		if (allfiles == null)	// this happens if 'startDir' is not a directory
+			return;
+
+		List<File> subdirs = new ArrayList<>();
+
+		// process all files in current directory:
+		for (File file : allfiles) {
+			checkedCount++;
+			if (file.isDirectory()) {
+				subdirs.add(file);
 			}
 			else {
-				System.out.println("ignored: " + fName);
+				if (isGoProFile(file)) {
+					renameGoproFile(file);
+				} else {
+					log("    ignored: " + file.getName());
+				}
+			}
+		}
+
+		if (RECURSIVE) {
+			for (File sdir : subdirs) {
+				processDirectory(sdir);
 			}
 		}
 	}
-	
-	private boolean isGoProFile(String fName) {
+
+	/**
+	 * Checks if the given file is a valid GoPro file. That is, its name has
+	 * the form 'GHcctttt.xxx' or 'GLcctttt.xxx', where 'tttt' is a 4-digit
+	 * 'take' number and 'cc' is a 2-digit 'clip' number. The file extension
+	 * 'xxx' is not taken into account.
+	 * @param f the file to be tested.
+	 * @return {@code true} if the file is a GoPro file, {@code false} otherwise.
+	 */
+	private boolean isGoProFile(File f) {
+		String fName = f.getName();
 		if (!fName.startsWith("GH") && !fName.startsWith("GL")) {
-			//System.out.println("1 "  + fName);
 			return false;
 		}
-		String rawName = getRawName(fName);
+		String rawName = getFileRawName(fName);
 		if (rawName.length() != 8) {
-			//System.out.println("32 "  + fName);
 			return false;
 		}
 		if (!Character.isDigit(rawName.charAt(rawName.length() - 1))) {
-			//System.out.println("3 "  + fName + " - " + rawName.charAt(rawName.length() - 1));
 			return false;	
 		}
 		return true;
 	}
 	
-	private String newName(String oldName) {
-		String rawName = getRawName(oldName);
-		String number = rawName.substring(4);
-		String sequence = rawName.substring(2, 4);	// GH010527
-		return number + sequence + "-" + oldName;
+	private String mapGoproName(String oldName) {	// GH010446.MP4
+		String rawName = getFileRawName(oldName);	// GH010446
+		String takeNo = rawName.substring(4);		// 0446
+		String clipNo = rawName.substring(2, 4);	// 01
+		return takeNo + clipNo + "-" + oldName;		// 044601-GH010446.MP4
 	}
 
-	private boolean renameFile(File file) throws IOException {
-		String oldname = file.getName();
-		String newname = newName(oldname);
+	/**
+	 * Tries to rename the given GoPro file according to our conventions.
+	 * @param f a file for which {@link #isGoProFile(File)} returns {@code true}.
+	 * @return {@code true} if the file was properly renamed, {@code false} otherwise.
+	 */
+	private boolean renameGoproFile(File f) {
+		String oldname = f.getName();
+		String newname = mapGoproName(oldname);
 
 		// now rename that file:
-		Path source = Paths.get(file.getAbsolutePath());
+		Path source = Paths.get(f.getAbsolutePath());
 		try {
-			// rename a file in the same directory
-			//System.out.println("renaming " + oldname.substring(0, 100) + "...");
-			System.out.println(oldname + " -> " +  newname);
+			log("   renaming " + oldname + " -> " +  newname);
 			if (!DRY_RUN) {
 				Files.move(source, source.resolveSibling(newname));
 				renamedCount++;
@@ -173,39 +185,8 @@ public class GoProFileRenamer {
 
 	// -------------------------------------------------------------------
 
-	// https://howtodoinjava.com/java/io/sha-md5-file-checksum-hash/
 	@SuppressWarnings("unused")
-	private String getFileChecksum(MessageDigest digest, File file) throws IOException {
-		// Get file input stream for reading the file content
-		try (FileInputStream fis = new FileInputStream(file)) {
-			// Create byte array to read data in chunks
-			byte[] byteArray = new byte[1024];
-			int bytesCount = 0;
-
-			// Read file data and update in message digest
-			while ((bytesCount = fis.read(byteArray)) != -1) {
-				digest.update(byteArray, 0, bytesCount);
-			}
-			// close the stream; We don't need it now.
-			//fis.close();
-		}
-
-		// Get the hash's bytes
-		byte[] bytes = digest.digest();
-
-		// This bytes[] has bytes in decimal format;
-		// Convert it to hexadecimal format
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < bytes.length; i++) {
-			sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
-		}
-
-		// return complete hash
-		return sb.toString();
-	}
-
-	@SuppressWarnings("unused")
-	private String getExtension(String fileName) {
+	private String getFileExtension(String fileName) {
 		int lastIndex = fileName.lastIndexOf('.');
 		if (lastIndex == -1) {
 			return null;
@@ -213,7 +194,7 @@ public class GoProFileRenamer {
 		return fileName.substring(lastIndex);
 	}
 
-	private String getRawName(String fileName) {
+	private String getFileRawName(String fileName) {
 		int lastIndex = fileName.lastIndexOf('.');
 		if (lastIndex == -1) {
 			return null;
@@ -221,7 +202,7 @@ public class GoProFileRenamer {
 		return fileName.substring(0, lastIndex);
 	}
 
-	private static String selectDirectory(String defaultDir) {
+	private static File selectDirectory(String defaultDir) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // use native look and feel
 		} catch (ClassNotFoundException |
@@ -230,55 +211,27 @@ public class GoProFileRenamer {
 		JComponent.setDefaultLocale(Locale.US);
 
 		JFileChooser chooser = new JFileChooser(defaultDir);
-		//	FileNameExtensionFilter filter = new FileNameExtensionFilter("LaTeX files", "tex");
-		//	chooser.setFileFilter(filter);
 
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		chooser.setDialogTitle("Select a directory");
+		chooser.setDialogTitle("Select the root directory");
 		chooser.setApproveButtonText("Select");
 
-		chooser.setAccessory(new JCheckBox("DRY RUN only", DRY_RUN));
-		//chooser.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		// set up checkboxes for options:
+		OptionsPanel cbp = new OptionsPanel("Options");
+		cbp.addCheckBox("Dry run only", DRY_RUN);
+		cbp.addCheckBox("Recursive", RECURSIVE);
+		cbp.addCheckBox("Verbose", VERBOSE);
+		chooser.setAccessory(cbp);
 
 		int returnVal = chooser.showOpenDialog(null);
 		if (returnVal != JFileChooser.APPROVE_OPTION) {
-			return null;
+			return null;	// cancelled
 		}
 
-		DRY_RUN = ((JCheckBox) chooser.getAccessory()).isSelected();
-		System.out.println("DRY_RUN = " + DRY_RUN);
-
-		return chooser.getSelectedFile().getAbsolutePath();
-	}
-
-	private static String selectDirectory2(String defaultDir) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // use native look and feel
-		} catch (ClassNotFoundException |
-				 InstantiationException | IllegalAccessException |
-				 UnsupportedLookAndFeelException e) { }
-		JComponent.setDefaultLocale(Locale.US);
-
-		JFileChooser chooser = new JFileChooser(defaultDir);
-		//	FileNameExtensionFilter filter = new FileNameExtensionFilter("LaTeX files", "tex");
-		//	chooser.setFileFilter(filter);
-
-		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		chooser.setDialogTitle("Select a directory");
-		chooser.setApproveButtonText("Select");
-
-		chooser.setAccessory(new CheckboxPanel(DRY_RUN));
-		//chooser.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-		int returnVal = chooser.showOpenDialog(null);
-		if (returnVal != JFileChooser.APPROVE_OPTION) {
-			return null;
-		}
-
-		DRY_RUN = ((CheckboxPanel) chooser.getAccessory()).getDryRun();
-		System.out.println("DRY_RUN = " + DRY_RUN);
-
-		return chooser.getSelectedFile().getAbsolutePath();
+		DRY_RUN 	= cbp.getNextState();
+		RECURSIVE 	= cbp.getNextState();
+		VERBOSE 	= cbp.getNextState();
+		return chooser.getSelectedFile();
 	}
 
 	/**
@@ -297,6 +250,60 @@ public class GoProFileRenamer {
 		if (!aDirectory.canRead()) {
 			throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
 		}
+	}
+
+	private static void log(String msg) {
+		if(VERBOSE) {
+			System.out.println(msg);
+		}
+	}
+
+	// ----------------------------------------------------------------------------------
+
+	/**
+	 * Collects a list of checkboxes to set/reset various boolean options.
+	 */
+	private static class OptionsPanel extends JComponent {
+
+		final List<JCheckBox> checkboxes = new ArrayList<>();
+		final int wdth = 150;	// width of each checkbox entry
+		final int hgt = 20;		// height of each checkbox entry
+		final int lftX = 5;		// indentation from left border
+		final int gapY = 5;		// vertical gap between successive checkboxes
+
+		int posY = 0;	// vertical position
+		int cntr = 0;	// counter for retrieving state values
+
+		OptionsPanel() {
+			this((String) null);
+		}
+
+		OptionsPanel(String title) {
+			if (title != null) {
+				JLabel lbl = new JLabel(title);
+				this.add(lbl).setBounds(lftX, posY, wdth, hgt);
+				posY += hgt + gapY;
+			}
+		}
+
+		JCheckBox addCheckBox( String text, boolean initVal) {
+			JCheckBox cb = new JCheckBox(text, initVal);
+			cb.setBounds(lftX, posY, wdth, hgt);
+			posY += hgt + gapY;
+			checkboxes.add(cb);
+			// add checkbox to this component:
+			this.add(cb);
+			this.setPreferredSize(new Dimension(wdth, posY));
+			return cb;
+		}
+
+		// will throw an exception if no next checkbox exists
+		boolean getNextState() {
+			boolean state = checkboxes.get(cntr).isSelected();
+			cntr = cntr + 1;
+			return state;
+		}
+
 	}
 
 }

@@ -8,6 +8,25 @@
     <artifactId>gopro-file-renamer</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <description>
+        A simple tool for renaming files produced by GoPro action cams.
+    </description>
+
+    <inceptionYear>2020</inceptionYear>
+
+    <developers>
+        <developer>
+            <name>Wilhelm Burger (wilbur@ieee.org)</name>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>BSD 2-Clause "Simplified" License</name>
+            <url>http://opensource.org/licenses/BSD-2-Clause</url>
+        </license>
+    </licenses>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
