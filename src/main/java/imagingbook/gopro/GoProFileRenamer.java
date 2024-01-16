@@ -1,4 +1,4 @@
-package com.imagingbook;
+package imagingbook.gopro;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,9 +15,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * GoPro files are named in a weird way, e.g., the continuous segments of
@@ -40,16 +42,16 @@ import javax.swing.UIManager;
  * {@code .THM} and 
  * {@code .LRV} files.
  *
- * @author wilbur
- * @version 2022/12/12
+ * @author wilbur@ieee.org
+ * @version 2024/01/16
  */
 public class GoProFileRenamer {
 
-	private static boolean DRY_RUN = true;
+	private static boolean DRY_RUN = false;
 
-	private static String DEFAULT_DIR = "D:\\video\\2023-Vogesen-Schwarzwald";
-// 	private static String DEFAULT_DIR = Paths.get("").toAbsolutePath().toString();
-//	private static int MAX_NAME_LENGTH = 128;
+	// private static String DEFAULT_DIR = "D:\\video\\2023-Vogesen-Schwarzwald";
+	private static String DEFAULT_DIR = Paths.get("").toAbsolutePath().toString();
+	// private static int MAX_NAME_LENGTH = 128;
 
 	public static void main(String[] args) throws Exception {
 		System.out.println("Default directory: " + DEFAULT_DIR);
@@ -57,9 +59,11 @@ public class GoProFileRenamer {
 			System.out.println("This is a DRY RUN only!");
 		}
 		// choose the root directory containing the java files
-		String rootDir = selectDirectory(DEFAULT_DIR);
-		if (rootDir == null)
+		String rootDir = selectDirectory2(DEFAULT_DIR);
+		if (rootDir == null) {
+			System.out.println("Cancelled.");
 			return;
+		}
 
 		System.out.println("Root path: " + rootDir);
 		File fRootDir = new File(rootDir);
@@ -219,35 +223,62 @@ public class GoProFileRenamer {
 
 	private static String selectDirectory(String defaultDir) {
 		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {	}	// use native look and feel
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // use native look and feel
+		} catch (ClassNotFoundException |
+				 InstantiationException | IllegalAccessException |
+				 UnsupportedLookAndFeelException e) { }
 		JComponent.setDefaultLocale(Locale.US);
-		
 
 		JFileChooser chooser = new JFileChooser(defaultDir);
-		//			FileNameExtensionFilter filter = new FileNameExtensionFilter("LaTeX files", "tex");
-		//			chooser.setFileFilter(filter);
+		//	FileNameExtensionFilter filter = new FileNameExtensionFilter("LaTeX files", "tex");
+		//	chooser.setFileFilter(filter);
 
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setDialogTitle("Select a directory");
 		chooser.setApproveButtonText("Select");
-		
+
+		chooser.setAccessory(new JCheckBox("DRY RUN only", DRY_RUN));
 		//chooser.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		int returnVal = chooser.showOpenDialog(null);
-
 		if (returnVal != JFileChooser.APPROVE_OPTION) {
-			System.out.println("canceled.");
-			return null;
-		}
-		String path = chooser.getSelectedFile().getAbsolutePath();
-
-		if (path == null) {
-			System.out.println("cancelled.");
 			return null;
 		}
 
-		return path;
+		DRY_RUN = ((JCheckBox) chooser.getAccessory()).isSelected();
+		System.out.println("DRY_RUN = " + DRY_RUN);
+
+		return chooser.getSelectedFile().getAbsolutePath();
+	}
+
+	private static String selectDirectory2(String defaultDir) {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // use native look and feel
+		} catch (ClassNotFoundException |
+				 InstantiationException | IllegalAccessException |
+				 UnsupportedLookAndFeelException e) { }
+		JComponent.setDefaultLocale(Locale.US);
+
+		JFileChooser chooser = new JFileChooser(defaultDir);
+		//	FileNameExtensionFilter filter = new FileNameExtensionFilter("LaTeX files", "tex");
+		//	chooser.setFileFilter(filter);
+
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setDialogTitle("Select a directory");
+		chooser.setApproveButtonText("Select");
+
+		chooser.setAccessory(new CheckboxPanel(DRY_RUN));
+		//chooser.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+		int returnVal = chooser.showOpenDialog(null);
+		if (returnVal != JFileChooser.APPROVE_OPTION) {
+			return null;
+		}
+
+		DRY_RUN = ((CheckboxPanel) chooser.getAccessory()).getDryRun();
+		System.out.println("DRY_RUN = " + DRY_RUN);
+
+		return chooser.getSelectedFile().getAbsolutePath();
 	}
 
 	/**
