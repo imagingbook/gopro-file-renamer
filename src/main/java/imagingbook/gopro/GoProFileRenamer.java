@@ -17,16 +17,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
- * GoPro files are named in a weird way, e.g., the continuous segments of
- * the some composite video sequence ("0527") are named
+ * GoPro files are named in a weird way, e.g., the successive clips of
+ * a "chaptered" video sequence ("0527") are named
  * <pre>
  * GH010527.MP4
  * GH020527.MP4
  * GH030527.MP4
  * ...</pre>
- * Thus if listed by title, clips belonging to the same video do not show in succession!
+ * Thus if listed by file name, clips belonging to the same video do not show in succession!
  * This program renames these files to
  * <pre>
  * 052701-GH010527.MP4
@@ -34,15 +35,20 @@ import java.util.Locale;
  * 052703-GH030527.MP4
  * ...</pre>
  * thereby preserving the original names.
- * All associated GoPro file types are renamed, i.e.,
+ * All associated GoPro file types are renamed, such as
  * {@code .MP4},
- * {@code .THM} and 
+ * {@code .THM},
  * {@code .LRV} files.
+ *
+ * Note that this only works for files produced with GoPro Hero6 to Hero12 cams.
+ * Earlier models with different file naming conventions are not supported
+ * (see https://community.gopro.com/s/article/GoPro-Camera-File-Naming-Convention
+ * for details).
  *
  * @author wilbur@ieee.org
  * @version 2024/01/16
  */
-public class GoProFileRenamer {
+public final class GoProFileRenamer {
 
 	private static boolean DRY_RUN = false;
 	private static boolean RECURSIVE = true;
@@ -113,7 +119,7 @@ public class GoProFileRenamer {
 				subdirs.add(file);
 			}
 			else {
-				if (isGoProFile(file)) {
+				if (isGoProFileName(file)) {
 					renameGoproFile(file);
 				} else {
 					log("    ignored: " + file.getName());
@@ -128,44 +134,46 @@ public class GoProFileRenamer {
 		}
 	}
 
+	// Admissible raw file names are GHzzxxxx, GLzzxxxx and GHzzxxxx,
+	// where zz and xxxx are all decimal digits:
+	final Pattern p = Pattern.compile("G[HLX]\\d{6}");
+
 	/**
 	 * Checks if the given file is a valid GoPro file. That is, its name has
-	 * the form 'GHcctttt.xxx' or 'GLcctttt.xxx', where 'tttt' is a 4-digit
-	 * 'take' number and 'cc' is a 2-digit 'clip' number. The file extension
-	 * 'xxx' is not taken into account.
+	 * the form 'GHzzxxxx.ext' or 'GLzzxxxx.ext', where 'xxx' is a 4-digit
+	 * 'video' number and 'zz' is a 2-digit 'chapter' number. The file extension
+	 * 'ext' is irrelevant.
 	 * @param f the file to be tested.
 	 * @return {@code true} if the file is a GoPro file, {@code false} otherwise.
 	 */
-	private boolean isGoProFile(File f) {
-		String fName = f.getName();
-		if (!fName.startsWith("GH") && !fName.startsWith("GL")) {
-			return false;
-		}
-		String rawName = getFileRawName(fName);
-		if (rawName.length() != 8) {
-			return false;
-		}
-		if (!Character.isDigit(rawName.charAt(rawName.length() - 1))) {
-			return false;	
-		}
-		return true;
+	boolean isGoProFileName(File f) {
+		String fName = f.getName();				// e.g., "GH010527.MP4"
+		String rName = getFileRawName(fName);	// e.g., "GH010527"
+		return p.matcher(rName).matches();
 	}
-	
-	private String mapGoproName(String oldName) {	// GH010446.MP4
-		String rawName = getFileRawName(oldName);	// GH010446
-		String takeNo = rawName.substring(4);		// 0446
-		String clipNo = rawName.substring(2, 4);	// 01
-		return takeNo + clipNo + "-" + oldName;		// 044601-GH010446.MP4
+
+	/**
+	 * Maps an existing GoPro file name to its new name by prepending the
+	 * video and chapter numbers to the original file name, for example,
+	 * "GH010446.MP4" becomes "044601-GH010446.MP4".
+	 * @param fName the orinal file name
+	 * @return the modified file name
+	 */
+	private String mapGoproFileName(String fName) {	// "GH010446.MP4"
+		String rName = getFileRawName(fName);		// "GH010446"
+		String videoNo = rName.substring(4);		// "0446"
+		String chapNo = rName.substring(2, 4);		// "01"
+		return videoNo + chapNo + "-" + fName;		// "044601-GH010446.MP4"
 	}
 
 	/**
 	 * Tries to rename the given GoPro file according to our conventions.
-	 * @param f a file for which {@link #isGoProFile(File)} returns {@code true}.
+	 * @param f a file for which {@link #isGoProFileName(File)} returns {@code true}.
 	 * @return {@code true} if the file was properly renamed, {@code false} otherwise.
 	 */
 	private boolean renameGoproFile(File f) {
 		String oldname = f.getName();
-		String newname = mapGoproName(oldname);
+		String newname = mapGoproFileName(oldname);
 
 		// now rename that file:
 		Path source = Paths.get(f.getAbsolutePath());
@@ -186,7 +194,7 @@ public class GoProFileRenamer {
 	// -------------------------------------------------------------------
 
 	@SuppressWarnings("unused")
-	private String getFileExtension(String fileName) {
+	static String getFileExtension(String fileName) {
 		int lastIndex = fileName.lastIndexOf('.');
 		if (lastIndex == -1) {
 			return null;
@@ -194,15 +202,21 @@ public class GoProFileRenamer {
 		return fileName.substring(lastIndex);
 	}
 
-	private String getFileRawName(String fileName) {
+	/**
+	 * Strips the file extension from the given file name, for example,
+	 * "GH010446.MP4" yields "GH010446".
+	 * @param fileName the file name
+	 * @return the raw file name without extension
+	 */
+	static String getFileRawName(String fileName) {
 		int lastIndex = fileName.lastIndexOf('.');
-		if (lastIndex == -1) {
-			return null;
+		if (lastIndex == -1) {	// fileName has no extension
+			return fileName;
 		}
 		return fileName.substring(0, lastIndex);
 	}
 
-	private static File selectDirectory(String defaultDir) {
+	static File selectDirectory(String defaultDir) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // use native look and feel
 		} catch (ClassNotFoundException |
@@ -228,27 +242,27 @@ public class GoProFileRenamer {
 			return null;	// cancelled
 		}
 
-		DRY_RUN 	= cbp.getNextState();
-		RECURSIVE 	= cbp.getNextState();
-		VERBOSE 	= cbp.getNextState();
+		DRY_RUN 	= cbp.getNextCheckboxState();
+		RECURSIVE 	= cbp.getNextCheckboxState();
+		VERBOSE 	= cbp.getNextCheckboxState();
 		return chooser.getSelectedFile();
 	}
 
 	/**
 	 * Directory is valid if it exists, does not represent a file, and can be read.
 	 */
-	private static void validateDirectory(File aDirectory) throws FileNotFoundException {
-		if (aDirectory == null) {
+	private static void validateDirectory(File dir) throws FileNotFoundException {
+		if (dir == null) {
 			throw new IllegalArgumentException("Directory should not be null.");
 		}
-		if (!aDirectory.exists()) {
-			throw new FileNotFoundException("Directory does not exist: " + aDirectory);
+		if (!dir.exists()) {
+			throw new FileNotFoundException("Directory does not exist: " + dir);
 		}
-		if (!aDirectory.isDirectory()) {
-			throw new IllegalArgumentException("This is not a directory: " + aDirectory);
+		if (!dir.isDirectory()) {
+			throw new IllegalArgumentException("This is not a directory: " + dir);
 		}
-		if (!aDirectory.canRead()) {
-			throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
+		if (!dir.canRead()) {
+			throw new IllegalArgumentException("Directory cannot be read: " + dir);
 		}
 	}
 
@@ -261,7 +275,7 @@ public class GoProFileRenamer {
 	// ----------------------------------------------------------------------------------
 
 	/**
-	 * Collects a list of checkboxes to set/reset various boolean options.
+	 * Shows a sequence of checkboxes to set/reset various boolean options.
 	 */
 	private static class OptionsPanel extends JComponent {
 
@@ -298,7 +312,7 @@ public class GoProFileRenamer {
 		}
 
 		// will throw an exception if no next checkbox exists
-		boolean getNextState() {
+		boolean getNextCheckboxState() {
 			boolean state = checkboxes.get(cntr).isSelected();
 			cntr = cntr + 1;
 			return state;
