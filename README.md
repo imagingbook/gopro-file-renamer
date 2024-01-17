@@ -3,7 +3,7 @@
 This is a simple Java tool for renaming GoPro files (Hero6 to Hero12).
 
 ## Why rename GoPro files?
-When recording longer **takes**, GoPro cameras split the videos into shorter **clips** ("chapters", typically of size 2-12 GB)
+When recording longer takes, GoPro cameras split the videos into shorter clips or "chapters" (typically of size 2-12 GB)
 in regular intervals.
 Unfortunately, the resulting files are named in a rather peculiar way, such that their temporal order does not correspond to
 the **lexicographic order** of the filenames.
@@ -32,7 +32,7 @@ GH030528.MP4
 that is, the chapters of different videos are scrambled and chapters belonging to the same video do not show in succession!
 
 One could argue that this is no big deal because files can be listed by **creation time** instead, thus preserving
-the temporal order. However, GoPro cams are notoriously prone to loosing their time setting. Just removing the battery
+the temporal order. However, GoPro cams are quite prone to loosing their time setting. Just removing the battery
 briefly (at least on a Hero 7 black) may easily cause the camera to reset its internal clock, rendering all subsequent file
 dates wrong. Under such circumstances the correct order of files is difficult to restore.
 
