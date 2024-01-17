@@ -3,23 +3,24 @@
 This is a simple Java tool for renaming GoPro files.
 
 ## Why rename GoPro files?
-When recording longer **takes**, GoPro cameras split the videos into shorter **clips** (smaller than 4GB) in regular intervals.
-Unfortunately, the resulting files are named in a weird way, such that their temporal order does not correspond to
+When recording longer **takes**, GoPro cameras split the videos into shorter **clips** ("chapters", typically of size 2-12 GB)
+in regular intervals.
+Unfortunately, the resulting files are named in a rather peculiar way, such that their temporal order does not correspond to
 the **lexicographic order** of the filenames.
-For example, the successive segments of two video **takes** numbered `0527` and `0528`, respectively, are named
+For example, the successive chapters of two videos numbered `0527` and `0528`, respectively, are named
 ```
-GH010527.MP4        // take 0527
+GH010527.MP4        // video 0527
 GH020527.MP4
 GH030527.MP4
 ```
 and
 ```
-GH010528.MP4        // take 0528
+GH010528.MP4        // video 0528
 GH020528.MP4
 GH030528.MP4
 ```
-i.e., **clip** numbers `01`, `02`, `03` etc. are inserted _before_ the corresponding **take** number.
-If you list the recorded files in a file browser in lexicographic order, the result is
+i.e., the **chapter** numbers `01`, `02`, `03` etc. are inserted _before_ the corresponding **video** number.
+If the recorded files are listed in lexicographic order, the result is
 ```
 GH010527.MP4
 GH010528.MP4
@@ -28,15 +29,15 @@ GH020528.MP4
 GH030527.MP4
 GH030528.MP4
 ```
-that is, the clips belonging to different takes are scrambled and clips belonging to the same take do not show in succession!
+that is, the chapters of different videos are scrambled and chapters belonging to the same video do not show in succession!
 
-One could argue that this is not a big issue because files can be listed by **creation time** instead, thus preserving
-the temporal order. However, GoPro cams are not reliable at keeping their time setting. Removing the battery
-briefly (at least on my Hero 7 black) may easily cause the camera to reset its internal clock, meaning that all file
-dates are wrong. Under such circumstances the correct order of files is difficult to restore.
+One could argue that this is no big deal because files can be listed by **creation time** instead, thus preserving
+the temporal order. However, GoPro cams are notoriously prone to loosing their time setting. Just removing the battery
+briefly (at least on a Hero 7 black) may easily cause the camera to reset its internal clock, rendering all subsequent file
+dates wrong. Under such circumstances the correct order of files is difficult to restore.
 
-**Remark:** I have no clue what motivated GoPro to adopt this strange naming scheme. I suspect it was simply a mistake and
-not much consideration was spent on it. That's not really a good excuse, though ...
+**Remark:** I have no idea what motivated GoPro to adopt this peculiar naming scheme. 
+If it was not simply a mistake its real intention is well hidden. 
 
 ## What this tool does
 This program renames GoPro files in a specified directory (recursively) to
