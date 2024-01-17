@@ -1,6 +1,6 @@
 # GoPro File Renamer
 
-This is a simple Java tool for renaming GoPro files.
+This is a simple Java tool for renaming GoPro files (Hero6 to Hero12).
 
 ## Why rename GoPro files?
 When recording longer **takes**, GoPro cameras split the videos into shorter **clips** ("chapters", typically of size 2-12 GB)
