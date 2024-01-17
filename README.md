@@ -51,7 +51,11 @@ thereby returning them to proper lexicographic order while still preserving the 
 In addition, all associated GoPro files are renamed as well, including
 `.MP4`, `.THM` and `.LRV` files.
 The creation dates of the files are not changed.
-Note that **no backup copies** of the files are made during renaming because of the large size of the video files.
+
+**Notes:** 
+* This tool only works for files produced with GoPro **Hero6** to **Hero12** cams. Earlier models using different file naming conventions
+  are not supported (see https://community.gopro.com/s/article/GoPro-Camera-File-Naming-Convention for details).
+* **No backup copies** of the files are made during renaming because of the large size of the video files.
 
 ## How to use
 
