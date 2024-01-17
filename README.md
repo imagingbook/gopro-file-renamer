@@ -37,7 +37,7 @@ briefly (at least on a Hero 7 black) may easily cause the camera to reset its in
 dates wrong. Under such circumstances the correct order of files is difficult to restore.
 
 **Remark:** I have no idea what motivated GoPro to adopt this peculiar naming scheme. 
-If it was not simply a mistake its real intention is well hidden. 
+If it was not simply a mistake its real intentions are well hidden. 
 
 ## What this tool does
 This program renames GoPro files in a specified directory (recursively) to
