@@ -66,3 +66,8 @@ The creation dates of the files are not changed.
   ```
   java -jar renamer.jar
   ```
+
+This should open a window for choosing the root directory of the video files, which includes
+a few options to select:
+
+![img.png](docs/images/directory-chooser-marked.png)
