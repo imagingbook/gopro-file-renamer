@@ -60,14 +60,19 @@ The creation dates of the files are not changed.
 ## How to use
 
 * A Java runtime must be installed on your machine and the `java` executable must be on the path.
-* Download [renamer.jar](https://github.com/imagingbook/gopro-file-renamer/tree/master/assets/renamer.jar) to your local file system. This is an executable
+* Download [**assets/renamer.jar**](https://github.com/imagingbook/gopro-file-renamer/tree/master/assets/renamer.jar) to your local file system. This is an executable
   JAR file which includes all dependencies.
 * Open a command or shell window in the same location and type
   ```
   java -jar renamer.jar
   ```
-
 This should open a window for choosing the root directory of the video files, which includes
-a few options to select:
+a few options to select. For example (on Win11):
 
 ![img.png](docs/images/directory-chooser-marked.png)
+
+Click `Select` to start renaming or `Cancel` to stop. A protocol is output to the console.
+
+## Disclaimer
+
+This is a private project with no industry affiliations or commercial interests. Use this software at your own risk (see [LICENSE](LICENSE)). 
