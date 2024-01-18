@@ -238,6 +238,7 @@ public final class GoProFileRenamer {
 		chooser.setAccessory(cbp);
 
 		int returnVal = chooser.showOpenDialog(null);
+
 		if (returnVal != JFileChooser.APPROVE_OPTION) {
 			return null;	// cancelled
 		}
