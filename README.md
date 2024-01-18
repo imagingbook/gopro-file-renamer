@@ -59,4 +59,10 @@ The creation dates of the files are not changed.
 
 ## How to use
 
-Coming soon ....
+* A Java runtime must be installed on your machine and the `java` executable must be on the path.
+* Download [renamer.jar](https://github.com/imagingbook/gopro-file-renamer/tree/master/assets/renamer.jar) to your local file system. This is an executable
+  JAR file which includes all dependencies.
+* Open a command or shell window in the same location and type
+  ```
+  java -jar renamer.jar
+  ```
