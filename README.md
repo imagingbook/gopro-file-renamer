@@ -7,19 +7,19 @@ When recording longer takes, GoPro cameras split the videos into shorter clips o
 in regular intervals.
 Unfortunately, the resulting files are named in a rather peculiar way, such that their temporal order does not correspond to
 the **lexicographic order** of the filenames.
-For example, the successive chapters of two videos numbered `0527` and `0528`, respectively, are named
+For example, the successive chapters of video **0527** are named
 ```
 GH010527.MP4        // video 0527
 GH020527.MP4
 GH030527.MP4
 ```
-and
+and the chapters of video **0528** are 
 ```
 GH010528.MP4        // video 0528
 GH020528.MP4
 GH030528.MP4
 ```
-i.e., the **chapter** numbers `01`, `02`, `03` etc. are inserted _before_ the corresponding **video** number.
+Thus the **chapter** numbers **01**, **02**, **03** etc. are placed _before_ the corresponding **video** number.
 If the recorded files are listed in lexicographic order, the result is
 ```
 GH010527.MP4
@@ -29,7 +29,7 @@ GH020528.MP4
 GH030527.MP4
 GH030528.MP4
 ```
-that is, the chapters of different videos are scrambled and chapters belonging to the same video do not show in succession!
+that is, chapters of different videos are intertwined and the chapters belonging to the same video do not show in succession!
 
 One could argue that this is no big deal because files can be listed by **creation time** instead, thus preserving
 the temporal order. However, GoPro cams are quite prone to loosing their time setting. Just removing the battery
@@ -40,7 +40,7 @@ dates wrong. Under such circumstances the correct order of files is difficult to
 If it was not simply a mistake its real intentions are well hidden. 
 
 ## What this tool does
-This program renames GoPro files in a specified directory (recursively) to
+This program renames GoPro files in a specified root directory (recursively) to
 ```
 GH010527.MP4 ---> 052701-GH010527.MP4
 GH020527.MP4 ---> 052702-GH020527.MP4
@@ -53,13 +53,14 @@ In addition, **all** associated GoPro files are renamed as well, including
 The creation dates of the files are not changed.
 
 **Notes:** 
-* This tool only works for files produced with GoPro **Hero6** to **Hero12** cams. Earlier models using different file naming conventions
+* This tool only works for files produced with GoPro **Hero6** to **Hero12** (and hopefully later) cams. Earlier models using different file naming conventions
   are not supported (see https://community.gopro.com/s/article/GoPro-Camera-File-Naming-Convention for details).
-* **No backup copies** of the files are made during renaming because of the large size of the video files.
+* **No backup copies** of the files are made during renaming because of the large size of the video files. To be safe, users should make their own
+  backups before running this program.
 
 ## How to use
 
-* A Java runtime must be installed on your machine and the `java` executable must be on the path.
+* A Java runtime must be installed (min. Version 1.8) on your machine and the `java` executable must be on the path.
 * Download [**assets/renamer.jar**](https://github.com/imagingbook/gopro-file-renamer/tree/master/assets/renamer.jar) to your local file system. This is an executable
   JAR file which includes all dependencies.
 * Open a command or shell window in the same location and type
@@ -70,6 +71,8 @@ The creation dates of the files are not changed.
   a few options to select. For example (on Win11):<br>
   ![img.png](docs/images/directory-chooser-marked.png)<br>
   Click `Select` to start renaming or `Cancel` to stop. A protocol is output to the console.
+
+* The program can also be executed by double-clicking the JAR file but in this case no console output will be displayed.
 
 ## Disclaimer
 
