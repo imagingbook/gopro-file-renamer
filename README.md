@@ -60,6 +60,7 @@ The creation dates of the files are not changed.
 
 ## How to use
 
+* This software should run on Windows, macOS and Linux (currently tested on Windows only).
 * A Java runtime must be installed (min. Version 1.8) on your machine and the `java` executable must be on the path.
 * Download [**assets/renamer.jar**](https://github.com/imagingbook/gopro-file-renamer/tree/master/assets/renamer.jar) to your local file system. This is an executable
   JAR file which includes all dependencies.
