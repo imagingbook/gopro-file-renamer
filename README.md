@@ -48,7 +48,7 @@ GH030527.MP4 ---> 052703-GH030527.MP4
 ...
 ```
 thereby returning them to proper lexicographic order while still preserving the original file names.
-In addition, all associated GoPro files are renamed as well, including
+In addition, **all** associated GoPro files are renamed as well, including
 `.MP4`, `.THM` and `.LRV` files.
 The creation dates of the files are not changed.
 
@@ -66,12 +66,10 @@ The creation dates of the files are not changed.
   ```
   java -jar renamer.jar
   ```
-This should open a window for choosing the root directory of the video files, which includes
-a few options to select. For example (on Win11):
-
-![img.png](docs/images/directory-chooser-marked.png)
-
-Click `Select` to start renaming or `Cancel` to stop. A protocol is output to the console.
+  This should open a window for choosing the root directory of the video files, which includes
+  a few options to select. For example (on Win11):<br>
+  ![img.png](docs/images/directory-chooser-marked.png)<br>
+  Click `Select` to start renaming or `Cancel` to stop. A protocol is output to the console.
 
 ## Disclaimer
 
