@@ -75,6 +75,13 @@ The creation dates of the files are not changed.
 
 * The program can also be executed by double-clicking the JAR file but in this case no console output will be displayed.
 
+## How to build
+
+This is a Maven-based Java project, which is built by simply running
+```
+mvn clean package
+```
+in the top-level directory. The project has no dependencies on any non-standard libraries.
 ## Disclaimer
 
 This is a private project with no industry affiliations or commercial interests. Use this software at your own risk (see [LICENSE](LICENSE)). 
