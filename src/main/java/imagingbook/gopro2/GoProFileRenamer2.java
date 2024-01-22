@@ -2,6 +2,8 @@ package imagingbook.gopro2;
 
 // https://www.javacodex.com/Swing/GroupLayout
 
+import imagingbook.demos.console3_good.TextAreaLogProgram;
+
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -13,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
@@ -25,45 +28,54 @@ import java.nio.file.Paths;
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.LEADING;
 
-public class GoProFileRenamer2 {
+public class GoProFileRenamer2 extends JFrame {
 
     private static String appTitle = "GoPro File Renamer";
     private static String DEFAULT_DIR = Paths.get("").toAbsolutePath().toString();
 
-    public static void main(String[] args) {
+    private final JLabel label;
+    private final JTextField textField;
+    private final JCheckBox cbDryRun, cbRecursive, cbVerbose;
+    private final JButton btnChoose, btnRun, btnQuit;
+    private final JTextArea outputArea;
+    private final JScrollPane scrollPane;
+
+    JFileChooser chooser;
+
+    public GoProFileRenamer2() {
+        super(appTitle);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) { }
-
         JFrame.setDefaultLookAndFeelDecorated(true);
-        JFrame frame = new JFrame(appTitle);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        JLabel label = new JLabel("Root directory:");
-        JTextField textField = new JTextField();
+        label = new JLabel("Root directory:");
+        textField = new JTextField();
 
-        JCheckBox cbDryRun = new JCheckBox("Dry run only", false);
-        JCheckBox cbRecursive = new JCheckBox("Recursive", true);
-        JCheckBox cbVerbose = new JCheckBox("Verbose", true);
+        cbDryRun    = new JCheckBox("Dry run only", false);
+        cbRecursive = new JCheckBox("Recursive", true);
+        cbVerbose   = new JCheckBox("Verbose", true);
 
-        JButton chooseButton = new JButton("Select");
-        JButton runButton = new JButton("Run");
-        JButton cancelButton = new JButton("Cancel");
+        btnChoose   = new JButton("Select");
+        btnRun      = new JButton("Run");
+        btnQuit     = new JButton("Quit");
 
-        JTextArea outputTextArea = new JTextArea("", 20, 50);
-        JScrollPane scrollPane = new JScrollPane(outputTextArea);
-        outputTextArea.append("Some output\n");
-        for (int i=0; i < 50; i++) {
-            outputTextArea.append("Some more output "+ i + "\n");
-        }
+        outputArea  = new JTextArea("", 20, 50);
+        scrollPane  = new JScrollPane(outputArea);
+        // outputTextArea.append("Some output\n");
+        // for (int i=0; i < 50; i++) {
+        //     outputTextArea.append("Some more output "+ i + "\n");
+        // }
+
 
         // --------------------------------------------------------------
 
-        chooseButton.addActionListener(new ActionListener() {
+        btnChoose.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("chooseButton action event " + e);
-                JFileChooser chooser = new JFileChooser(DEFAULT_DIR);
+                JFileChooser chooser = new JFileChooser((String) null);   // DEFAULT_DIR
 
                 chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 chooser.setDialogTitle("Select the root directory");
@@ -78,7 +90,7 @@ public class GoProFileRenamer2 {
             }
         });
 
-        runButton.addActionListener(new ActionListener() {
+        btnRun.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("runButton action event " + e);
@@ -88,7 +100,7 @@ public class GoProFileRenamer2 {
             }
         });
 
-       cancelButton.addActionListener(new ActionListener() {
+       btnQuit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // System.out.println("cancelButton action event " + e);
@@ -104,8 +116,8 @@ public class GoProFileRenamer2 {
         cbVerbose.setBorder(emptyBorder);
         // checkBox4.setBorder(emptyBorder);
 
-        GroupLayout layout = new GroupLayout(frame.getContentPane());
-        frame.getContentPane().setLayout(layout);
+        GroupLayout layout = new GroupLayout(this.getContentPane());
+        this.getContentPane().setLayout(layout);
 
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
@@ -123,9 +135,9 @@ public class GoProFileRenamer2 {
                                                         .addComponent(cbDryRun))
                                                 )
                                         .addGroup(layout.createParallelGroup(LEADING)
-                                                .addComponent(chooseButton)
-                                                .addComponent(runButton)
-                                                .addComponent(cancelButton))
+                                                .addComponent(btnChoose)
+                                                .addComponent(btnRun)
+                                                .addComponent(btnQuit))
                         )
                         .addComponent(scrollPane)
         );
@@ -134,7 +146,7 @@ public class GoProFileRenamer2 {
                 .addGroup(layout.createParallelGroup(BASELINE)
                         .addComponent(label)
                         .addComponent(textField)
-                        .addComponent(chooseButton))
+                        .addComponent(btnChoose))
                 .addGroup(layout.createParallelGroup(LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(BASELINE)
@@ -143,19 +155,28 @@ public class GoProFileRenamer2 {
                                         .addComponent(cbDryRun))
                         )
                         .addGroup(layout.createSequentialGroup()
-                                .addComponent(runButton)
-                                .addComponent(cancelButton))
+                                .addComponent(btnRun)
+                                .addComponent(btnQuit))
                 )
                 .addComponent(scrollPane)
         );
 
-        layout.linkSize(SwingConstants.HORIZONTAL, chooseButton, runButton, cancelButton);
+        layout.linkSize(SwingConstants.HORIZONTAL, btnChoose, btnRun, btnQuit);
 
-        frame.pack();
-        // Point center = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
-        // Rectangle r = frame.getBounds();
-        // frame.setBounds(center.x - r.width / 2, center.y - r.height / 2, r.width, r.height);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        pack();
+        setLocationRelativeTo(null);
+        // setVisible(true);
+    }
+
+    private
+
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new GoProFileRenamer2().setVisible(true);
+            }
+        });
     }
 }
