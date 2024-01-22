@@ -67,10 +67,10 @@ public class GoProFileRenamer extends JFrame {
     private boolean VERBOSE = true;
     private boolean DRY_RUN = true;
 
-    private final JLabel label;
-    private final JTextField textField;
-    private final JCheckBox cbDryRun, cbRecursive, cbVerbose;
-    private final JButton btnChoose, btnRun, btnClear, btnQuit;
+    private final JLabel startDirLabel;
+    private final JTextField startDirField;
+    private final JCheckBox checkDryRun, checkRecursive, checkVerbose;
+    private final JButton buttonFind, buttonRun, buttonClear, buttonQuit;
     private final JTextArea outputArea;
     private final JScrollPane scrollPane;
 
@@ -82,21 +82,21 @@ public class GoProFileRenamer extends JFrame {
         } catch (Exception e) { }
         JFrame.setDefaultLookAndFeelDecorated(true);
 
-        label = new JLabel("Root directory:");
-        textField = new JTextField(startDir);
+        startDirLabel = new JLabel("Start directory:");
+        startDirField = new JTextField(startDir);
 
-        cbRecursive = new JCheckBox("Recursive", RECURSIVE);
-        cbVerbose   = new JCheckBox("Verbose", VERBOSE);
-        cbDryRun    = new JCheckBox("Dry run only", DRY_RUN);
+        checkRecursive  = new JCheckBox("Recursive", RECURSIVE);
+        checkVerbose    = new JCheckBox("Verbose", VERBOSE);
+        checkDryRun     = new JCheckBox("Dry run only", DRY_RUN);
 
         // cbRecursive.setBorder(createEmptyBorder());
         // cbVerbose.setBorder(createEmptyBorder());
         // cbDryRun.setBorder(createEmptyBorder());
 
-        btnChoose   = new JButton("Select");
-        btnRun      = new JButton("Run");
-        btnClear    = new JButton("Clear");
-        btnQuit     = new JButton("Quit");
+        buttonFind  = new JButton("Find");
+        buttonRun   = new JButton("Run");
+        buttonClear = new JButton("Clear");
+        buttonQuit  = new JButton("Quit");
 
         outputArea  = new JTextArea("", 20, 80);
         outputArea.setEditable(false);
@@ -104,7 +104,7 @@ public class GoProFileRenamer extends JFrame {
 
         // --------------------------------------------------------------
 
-        btnChoose.addActionListener(new ActionListener() {
+        buttonFind.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("chooseButton action event " + e);
@@ -117,26 +117,26 @@ public class GoProFileRenamer extends JFrame {
                 int returnVal = chooser.showOpenDialog(null);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     File f = chooser.getSelectedFile();
-                    textField.setText(f.getAbsolutePath());
+                    startDirField.setText(f.getAbsolutePath());
                 }
             }
         });
 
-        btnRun.addActionListener(new ActionListener() {
+        buttonRun.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 doRename();
             }
         });
 
-        btnClear.addActionListener(new ActionListener() {
+        buttonClear.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 clearOutput();
             }
         });
 
-       btnQuit.addActionListener(new ActionListener() {
+       buttonQuit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // System.out.println("cancelButton action event " + e);
@@ -160,19 +160,19 @@ public class GoProFileRenamer extends JFrame {
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(
                                 layout.createSequentialGroup()
-                                        .addComponent(label)
+                                        .addComponent(startDirLabel)
                                         .addGroup(layout.createParallelGroup(LEADING)
-                                                .addComponent(textField)
+                                                .addComponent(startDirField)
                                                 .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(cbRecursive)
-                                                        .addComponent(cbVerbose)
-                                                        .addComponent(cbDryRun))
+                                                        .addComponent(checkRecursive)
+                                                        .addComponent(checkVerbose)
+                                                        .addComponent(checkDryRun))
                                         )
                                         .addGroup(layout.createParallelGroup(LEADING)
-                                                .addComponent(btnChoose)
-                                                .addComponent(btnRun)
-                                                .addComponent(btnClear)
-                                                .addComponent(btnQuit)
+                                                .addComponent(buttonFind)
+                                                .addComponent(buttonRun)
+                                                .addComponent(buttonClear)
+                                                .addComponent(buttonQuit)
                                         )
                         )
                         .addComponent(scrollPane)
@@ -180,25 +180,25 @@ public class GoProFileRenamer extends JFrame {
 
         layout.setVerticalGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(BASELINE)
-                        .addComponent(label)
-                        .addComponent(textField)
-                        .addComponent(btnChoose))
+                        .addComponent(startDirLabel)
+                        .addComponent(startDirField)
+                        .addComponent(buttonFind))
                 .addGroup(layout.createParallelGroup(LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(BASELINE)
-                                        .addComponent(cbRecursive)
-                                        .addComponent(cbVerbose)
-                                        .addComponent(cbDryRun))
+                                        .addComponent(checkRecursive)
+                                        .addComponent(checkVerbose)
+                                        .addComponent(checkDryRun))
                         )
                         .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnRun)
-                                .addComponent(btnClear)
-                                .addComponent(btnQuit))
+                                .addComponent(buttonRun)
+                                .addComponent(buttonClear)
+                                .addComponent(buttonQuit))
                 )
                 .addComponent(scrollPane)
         );
 
-        layout.linkSize(SwingConstants.HORIZONTAL, btnChoose, btnRun, btnQuit);
+        layout.linkSize(SwingConstants.HORIZONTAL, buttonFind, buttonRun, buttonQuit);
         this.getContentPane().setLayout(layout);
     }
 
@@ -207,10 +207,10 @@ public class GoProFileRenamer extends JFrame {
     }
 
     private void updateSettings() {
-        startDir = textField.getText();
-        RECURSIVE = cbRecursive.isSelected();
-        VERBOSE = cbVerbose.isSelected();
-        DRY_RUN = cbDryRun.isSelected();
+        startDir = startDirField.getText();
+        RECURSIVE = checkRecursive.isSelected();
+        VERBOSE = checkVerbose.isSelected();
+        DRY_RUN = checkDryRun.isSelected();
     }
 
     private void log(String msg) {
@@ -231,8 +231,9 @@ public class GoProFileRenamer extends JFrame {
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
 
-    // Admissible raw file names are GHzzxxxx, GLzzxxxx and GHzzxxxx,
-    // where zz and xxxx are all decimal digits:
+    // Admissible raw file names are GHzzxxxx, GLzzxxxx and GXzzxxxx,
+    // where zz and xxxx are all decimal digits.
+    // This is the associated regular expression pattern:
     private final Pattern p = Pattern.compile("G[HLX]\\d{6}");
 
     private int checkedCount = 0;
