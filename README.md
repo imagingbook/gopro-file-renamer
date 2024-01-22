@@ -72,12 +72,12 @@ a few options to select. For example (on Win11):
 ![img.png](docs/images/renamer-gui-data.png)
 
 Click `Find` to select the start (root) directory of your GoPro files, then press `Start` to run the renamer.
-Activate `Dry run` to see all renaming actions whithout actually modifying any files.
+Activate `Dry run only` to see all renaming actions whithout actually modifying any files.
 Use `Quit` to exit the program. A protocol is output to the console.
 
 ## Run in command window or shell 
 
-Altternatively, run the program by opening a command or shell window in the same location, then type
+Alternatively, run the program by opening a command or shell window in the same location, then type
 ```
 java -jar renamer.jar
 ```
