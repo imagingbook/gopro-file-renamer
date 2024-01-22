@@ -48,8 +48,7 @@ import javax.swing.SwingUtilities;
  *   images/Open16.gif
  *   images/Save16.gif
  */
-public class FileChooserDemo extends JPanel
-        implements ActionListener {
+public class FileChooserDemo extends JPanel implements ActionListener {
     static private final String newline = "\n";
     JButton openButton, saveButton;
     JTextArea log;
@@ -102,6 +101,7 @@ public class FileChooserDemo extends JPanel
     }
 
     public void actionPerformed(ActionEvent e) {
+        System.out.println("action event " + e);
 
         //Handle open button action.
         if (e.getSource() == openButton) {
@@ -168,9 +168,7 @@ public class FileChooserDemo extends JPanel
             public void run() {
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // use native look and feel
-                } catch (ClassNotFoundException |
-                         InstantiationException | IllegalAccessException |
-                         UnsupportedLookAndFeelException e) { }
+                } catch (Exception e) { }
                 JComponent.setDefaultLocale(Locale.US);
                 /*
                 //Turn off metal's use of bold fonts

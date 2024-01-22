@@ -53,8 +53,7 @@ import javax.swing.SwingUtilities;
 // https://docs.oracle.com/javase/tutorial/uiswing/examples/components/index.html#FileChooserDemo2
 // https://docs.oracle.com/javase/tutorial/uiswing/components/filechooser.html
 
-public class FileChooserDemo2 extends JPanel
-                              implements ActionListener {
+public class FileChooserDemo2 extends JPanel implements ActionListener {
     static private String newline = "\n";
     private JTextArea log;
     private JFileChooser fc;
@@ -78,6 +77,8 @@ public class FileChooserDemo2 extends JPanel
     }
 
     public void actionPerformed(ActionEvent e) {
+        System.out.println("action event " + e);
+
         //Set up the file chooser.
         if (fc == null) {
             fc = new JFileChooser();
