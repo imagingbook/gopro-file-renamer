@@ -64,16 +64,32 @@ The creation dates of the files are not changed.
 * A Java runtime must be installed (min. Version 1.8) on your machine and the `java` executable must be on the path.
 * Download [**assets/renamer.jar**](https://github.com/imagingbook/gopro-file-renamer/tree/master/assets/renamer.jar) to your local file system. This is an executable
   JAR file which includes all dependencies.
-* Open a command or shell window in the same location, then type
-  ```
-  java -jar renamer.jar
-  ```
-  This should open a window for choosing the root directory of the video files, which includes
-  a few options to select. For example (on Win11):<br>
-  ![img.png](docs/images/directory-chooser-marked.png)<br>
-  Click `Select` to start renaming or `Cancel` to stop. A protocol is output to the console.
 
-* The program can also be executed by double-clicking the JAR file but in this case no console output will be displayed.
+### Variant 1: Double-click the JAR file
+
+The program can typically be run by simply double-clicking the **renamer.jar** file.
+
+### Variant 2: Run in command window or shell 
+
+Open a command or shell window in the same location, then type
+```
+java -jar renamer.jar
+```
+
+Any of these two should open a GUI window for choosing the root directory of the video files, which includes
+a few options to select. For example (on Win11):
+
+![img.png](docs/images/renamer-gui-data.png)
+
+Click `Find` to select the start (root) directory of your GoPro files, then press `Start` to run the renamer.
+Activate `Dry run` to see all renaming actions whithout actually modifying any files.
+Use `Quit` to exit the program. A protocol is output to the console.
+
+## Test data
+
+A set of test data is provided in [**data/test-data.zip**](https://github.com/imagingbook/gopro-file-renamer/tree/master/data/test-data.zip).
+Unzip the data to a file location of your choice. Note that these are no real video files but contain only random data.
+There is also the shell script that was used to create these files.
 
 ## How to build
 
