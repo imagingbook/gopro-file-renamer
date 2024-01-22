@@ -38,11 +38,10 @@ public class GoProFileRenamer2 {
         JCheckBox cbDryRun = new JCheckBox("Dry run only");
         JCheckBox cbRecursive = new JCheckBox("Recursive");
         JCheckBox cbVerbose = new JCheckBox("Verbose");
-        // JCheckBox checkBox4 = new JCheckBox("CheckBox4");
 
-        JButton findButton = new JButton("Choose");
+        JButton chooseButton = new JButton("Select");
+        JButton runButton = new JButton("Run");
         JButton cancelButton = new JButton("Cancel");
-
 
         JTextArea outputTextArea = new JTextArea("", 20, 50);
         JScrollPane scrollPane = new JScrollPane(outputTextArea);
@@ -73,41 +72,38 @@ public class GoProFileRenamer2 {
                                         .addGroup(layout.createParallelGroup(LEADING)
                                                 .addComponent(textField)
                                                 .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(cbDryRun)
-                                                        .addComponent(cbVerbose)
                                                         .addComponent(cbRecursive)
-                                                ))
+                                                        .addComponent(cbVerbose)
+                                                        .addComponent(cbDryRun))
+                                                )
                                         .addGroup(layout.createParallelGroup(LEADING)
-                                                .addComponent(findButton)
-                                                .addComponent(cancelButton)))
-                        // wilbur:
-                        // .addComponent(longLabel)
+                                                .addComponent(chooseButton)
+                                                .addComponent(runButton)
+                                                .addComponent(cancelButton))
+                        )
                         .addComponent(scrollPane)
         );
 
-        layout.linkSize(SwingConstants.HORIZONTAL, findButton, cancelButton);
-
-        layout.setVerticalGroup(layout.createSequentialGroup()
+       layout.setVerticalGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(BASELINE)
                         .addComponent(label)
                         .addComponent(textField)
-                        .addComponent(findButton))
+                        .addComponent(chooseButton))
                 .addGroup(layout.createParallelGroup(LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(BASELINE)
-                                        .addComponent(cbDryRun)
                                         .addComponent(cbRecursive)
                                         .addComponent(cbVerbose)
-                                )
-                                // .addGroup(layout.createParallelGroup(BASELINE)
-                                //         // .addComponent(checkBox4)
-                                // )
+                                        .addComponent(cbDryRun))
                         )
-                        .addComponent(cancelButton))
-                // wilbur:
-                // .addComponent(longLabel)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(runButton)
+                                .addComponent(cancelButton))
+                )
                 .addComponent(scrollPane)
         );
+
+        layout.linkSize(SwingConstants.HORIZONTAL, chooseButton, runButton, cancelButton);
 
         frame.pack();
         // Point center = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
