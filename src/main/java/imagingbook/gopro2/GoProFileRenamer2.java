@@ -43,7 +43,7 @@ public class GoProFileRenamer2 extends JFrame {
     private final JLabel label;
     private final JTextField textField;
     private final JCheckBox cbDryRun, cbRecursive, cbVerbose;
-    private final JButton btnChoose, btnRun, btnQuit;
+    private final JButton btnChoose, btnRun, btnClear, btnQuit;
     private final JTextArea outputArea;
     private final JScrollPane scrollPane;
 
@@ -68,6 +68,7 @@ public class GoProFileRenamer2 extends JFrame {
 
         btnChoose   = new JButton("Select");
         btnRun      = new JButton("Run");
+        btnClear    = new JButton("Clear");
         btnQuit     = new JButton("Quit");
 
         outputArea  = new JTextArea("", 20, 80);
@@ -99,13 +100,14 @@ public class GoProFileRenamer2 extends JFrame {
         btnRun.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("runButton action event " + e);
-                System.out.println("cbRecursive  = " + cbRecursive.isSelected());
-                System.out.println("cbVerbose    = " + cbVerbose.isSelected());
-                System.out.println("cbDryRun     = " + cbDryRun.isSelected());
-                try {
-                    doRename(new File(startDir));
-                } catch (IOException ex) { }
+                doRename(new File(startDir));
+            }
+        });
+
+        btnClear.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearOutput();
             }
         });
 
@@ -144,7 +146,9 @@ public class GoProFileRenamer2 extends JFrame {
                                         .addGroup(layout.createParallelGroup(LEADING)
                                                 .addComponent(btnChoose)
                                                 .addComponent(btnRun)
-                                                .addComponent(btnQuit))
+                                                .addComponent(btnClear)
+                                                .addComponent(btnQuit)
+                                        )
                         )
                         .addComponent(scrollPane)
         );
@@ -163,6 +167,7 @@ public class GoProFileRenamer2 extends JFrame {
                         )
                         .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnRun)
+                                .addComponent(btnClear)
                                 .addComponent(btnQuit))
                 )
                 .addComponent(scrollPane)
@@ -172,12 +177,18 @@ public class GoProFileRenamer2 extends JFrame {
         this.getContentPane().setLayout(layout);
     }
 
+    private void clearOutput() {
+        outputArea.setText(null);
+    }
+
+    private void updateOptions() {
+        RECURSIVE = cbRecursive.isSelected();
+        VERBOSE = cbVerbose.isSelected();
+        DRY_RUN = cbDryRun.isSelected();
+    }
+
     private void log(String msg) {
-        if(VERBOSE) {
-            // System.out.println(msg);
-            this.outputArea.append(msg + "\n");
-            // this.outputArea.repaint();
-        }
+        this.outputArea.append(msg + "\n");
     }
 
     // -------------------------------------------------------------------------
@@ -201,7 +212,9 @@ public class GoProFileRenamer2 extends JFrame {
     private int checkedCount = 0;
     private int renamedCount = 0;
 
-    void doRename(File rootDir) throws IOException {
+    void doRename(File rootDir) {
+        updateOptions();
+
         String dlgTitle =  (DRY_RUN) ? appTitle + " (Dry Run)" : appTitle;
         int result = JOptionPane.showConfirmDialog(null,
                 (DRY_RUN) ?
@@ -218,7 +231,7 @@ public class GoProFileRenamer2 extends JFrame {
         checkedCount = 0;
         renamedCount = 0;
 
-        log("Renaming files ...");
+        log("Renaming GoPro files " + (DRY_RUN ? "(DRY RUN) ..." : "..."));
         processDirectory(rootDir);
         if (checkedCount == 0) {
             System.out.println("Found no files to check!");
@@ -234,8 +247,8 @@ public class GoProFileRenamer2 extends JFrame {
      * Recursively walk a directory tree and rename all GoPro files found.
      * @throws IOException
      */
-    private void processDirectory(File dir) throws IOException {
-        log("processing directory: " + dir.getName());
+    private void processDirectory(File dir) {
+        log("Directory: " + dir.getName());
         File[] allfiles = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
@@ -258,7 +271,7 @@ public class GoProFileRenamer2 extends JFrame {
                 if (isGoProFileName(file)) {
                     renameGoproFile(file);
                 } else {
-                    log("    ignored: " + file.getName());
+                    if (VERBOSE) log("    ignored " + file.getName());
                 }
             }
         }
@@ -310,14 +323,14 @@ public class GoProFileRenamer2 extends JFrame {
         // now rename that file:
         Path source = Paths.get(f.getAbsolutePath());
         try {
-            log("   renaming " + oldname + " -> " +  newname);
+            if (VERBOSE) log("   renaming " + oldname + " -> " +  newname);
             if (!DRY_RUN) {
                 Files.move(source, source.resolveSibling(newname));
                 renamedCount++;
             }
 
         } catch (IOException e) {
-            System.out.println("Error: could not rename file " + oldname);
+            log("Error: could not rename file " + oldname);
             return false;
         }
         return true;
