@@ -238,6 +238,7 @@ public class GoProFileRenamer extends JFrame {
 
     private int checkedCount = 0;
     private int renamedCount = 0;
+    private int errorCount = 0;
 
     void doRename() {
         updateSettings();
@@ -264,6 +265,7 @@ public class GoProFileRenamer extends JFrame {
 
         checkedCount = 0;
         renamedCount = 0;
+        errorCount = 0;
 
         log("Renaming GoPro files " + (DRY_RUN ? "(DRY RUN) ..." : "..."));
         processDirectory(dir);
@@ -274,12 +276,12 @@ public class GoProFileRenamer extends JFrame {
             log("------------------------------");
             log("Files checked: " + checkedCount);
             log("Files renamed: " + renamedCount);
+            log("File errors:   " + errorCount);
         }
     }
 
     /**
      * Recursively walk a directory tree and rename all GoPro files found.
-     * @throws IOException
      */
     private void processDirectory(File dir) {
         log("Directory: " + dir.getName());
@@ -297,11 +299,11 @@ public class GoProFileRenamer extends JFrame {
 
         // process all files in current directory:
         for (File file : allfiles) {
-            checkedCount++;
             if (file.isDirectory()) {
                 subdirs.add(file);
             }
             else {
+                checkedCount++;
                 if (isGoProFileName(file)) {
                     renameGoproFile(file);
                 } else {
@@ -356,16 +358,16 @@ public class GoProFileRenamer extends JFrame {
 
         // now rename that file:
         Path source = Paths.get(f.getAbsolutePath());
-        try {
-            if (VERBOSE) log("   renaming " + oldname + " -> " +  newname);
-            if (!DRY_RUN) {
+        if (VERBOSE) log("   renaming " + oldname + " -> " +  newname);
+        if (!DRY_RUN) {
+            try {
                 Files.move(source, source.resolveSibling(newname));
                 renamedCount++;
+            } catch (IOException e) {
+                log("ERROR: could not rename file " + oldname);
+                errorCount++;
+                return false;
             }
-
-        } catch (IOException e) {
-            log("Error: could not rename file " + oldname);
-            return false;
         }
         return true;
     }
