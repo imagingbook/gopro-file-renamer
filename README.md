@@ -73,7 +73,7 @@ a few options to select. For example (on Win11):
 ![img.png](docs/images/renamer-gui-data.png)
 
 * Click `Find` to select the start (root) directory of your GoPro files.
-* Activate `Recursive` to see all renaming actions without actually modifying any files.
+* Activate `Recursive` to traverse the directory tree recursively (otherwise only the start directory is processed).
 * Activate `Dry run only` to see all renaming actions without actually modifying any files.
 * Activate `Show absolute paths` to list absolute directory paths.
 * Click `Rename Files` to start renaming GoPro files.
