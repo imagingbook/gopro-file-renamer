@@ -51,6 +51,7 @@ thereby returning them to proper lexicographic order while still preserving the 
 In addition, **all** associated GoPro files are renamed as well, including
 `.MP4`, `.THM` and `.LRV` files.
 The creation dates of the files are not changed.
+Renamed GoPro files can be **restored** to their original names if necessary.
 
 **Notes:** 
 * This tool only works for files produced with GoPro **Hero6** to **Hero12** (and hopefully later) cams. Earlier models using different file naming conventions
@@ -71,9 +72,13 @@ a few options to select. For example (on Win11):
 
 ![img.png](docs/images/renamer-gui-data.png)
 
-Click `Find` to select the start (root) directory of your GoPro files, then press `Start` to run the renamer.
-Activate `Dry run only` to see all renaming actions whithout actually modifying any files.
-Use `Quit` to exit the program. A protocol is output to the console.
+* Click `Find` to select the start (root) directory of your GoPro files.
+* Activate `Recursive` to see all renaming actions without actually modifying any files.
+* Activate `Dry run only` to see all renaming actions without actually modifying any files.
+* Click `Rename Files` to start renaming GoPro files.
+* Click `Revert Files` to restore GoPro files to their original names.
+* Use `Clear Output` to clear the console.
+* Use `Quit` to exit the program.
 
 ## Run in command window or shell 
 
