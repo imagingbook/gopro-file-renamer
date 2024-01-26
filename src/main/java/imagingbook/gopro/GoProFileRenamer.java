@@ -61,7 +61,7 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
  * for details).
  *
  * @author wilbur@ieee.org
- * @version 2024/01/16
+ * @version 2024/01/26
  */
 public class GoProFileRenamer extends JFrame {
 
@@ -73,14 +73,14 @@ public class GoProFileRenamer extends JFrame {
     private boolean RECURSIVE = true;
     private boolean VERBOSE = true;
     private boolean DRY_RUN = true;
+    private boolean ABS_DIRS = false;
 
     private final JLabel startDirLabel;
     private final JTextField startDirField;
-    private final JCheckBox checkDryRun, checkRecursive, checkVerbose;
+    private final JCheckBox checkDryRun, checkRecursive, checkVerbose, checkAbsDirs;
     private final JButton buttonFind, buttonRename, buttonRevert, buttonClear, buttonQuit;
     private final JTextArea outputArea;
     private final JScrollPane scrollPane;
-
 
 
     public GoProFileRenamer() {
@@ -97,6 +97,7 @@ public class GoProFileRenamer extends JFrame {
         checkRecursive  = new JCheckBox("Recursive", RECURSIVE);
         checkVerbose    = new JCheckBox("Verbose", VERBOSE);
         checkDryRun     = new JCheckBox("Dry run only", DRY_RUN);
+        checkAbsDirs    = new JCheckBox("Show absolute paths", ABS_DIRS);
 
         // cbRecursive.setBorder(createEmptyBorder());
         // cbVerbose.setBorder(createEmptyBorder());
@@ -192,7 +193,8 @@ public class GoProFileRenamer extends JFrame {
                                                 .addGroup(layout.createSequentialGroup()
                                                         .addComponent(checkRecursive)
                                                         .addComponent(checkVerbose)
-                                                        .addComponent(checkDryRun))
+                                                        .addComponent(checkDryRun)
+                                                        .addComponent(checkAbsDirs))
                                         )
                                         .addGroup(layout.createParallelGroup(CENTER)
                                                 .addComponent(buttonFind)
@@ -215,7 +217,8 @@ public class GoProFileRenamer extends JFrame {
                                 .addGroup(layout.createParallelGroup(BASELINE)
                                         .addComponent(checkRecursive)
                                         .addComponent(checkVerbose)
-                                        .addComponent(checkDryRun))
+                                        .addComponent(checkDryRun)
+                                        .addComponent(checkAbsDirs))
                         )
                         .addGroup(layout.createSequentialGroup()
                                 .addComponent(buttonRename)
@@ -239,6 +242,7 @@ public class GoProFileRenamer extends JFrame {
         RECURSIVE = checkRecursive.isSelected();
         VERBOSE = checkVerbose.isSelected();
         DRY_RUN = checkDryRun.isSelected();
+        ABS_DIRS = checkAbsDirs.isSelected();
     }
 
     private void log(String msg) {
@@ -355,7 +359,7 @@ public class GoProFileRenamer extends JFrame {
      * Recursively walk a directory tree and rename all GoPro files found.
      */
     private void processDirectory(File dir) {
-        log("Directory: " + dir.getName());
+        log("Directory: " + (ABS_DIRS ? dir.getAbsolutePath() : dir.getName()));
         File[] allfiles = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
@@ -394,7 +398,7 @@ public class GoProFileRenamer extends JFrame {
      * Recursively walk a directory tree and revert all renamed GoPro files found.
      */
     private void revertDirectory(File dir) {
-        log("Directory: " + dir.getName());
+        log("Directory: " + (ABS_DIRS ? dir.getAbsolutePath() : dir.getName()));
         File[] allfiles = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
