@@ -75,6 +75,7 @@ a few options to select. For example (on Win11):
 * Click `Find` to select the start (root) directory of your GoPro files.
 * Activate `Recursive` to see all renaming actions without actually modifying any files.
 * Activate `Dry run only` to see all renaming actions without actually modifying any files.
+* Activate `Show absolute paths` to list absolute directory paths.
 * Click `Rename Files` to start renaming GoPro files.
 * Click `Revert Files` to restore GoPro files to their original names.
 * Use `Clear Output` to clear the console.
