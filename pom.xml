@@ -79,10 +79,14 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>
-                                        imagingbook.gopro.GoProFileRenamer
-                                    </mainClass>
+                                    <mainClass>imagingbook.gopro.GoProFileRenamer</mainClass>
+                                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                    <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                                 </manifest>
+                                <manifestEntries>
+                                    <!-- <Build-Date>${buildDate}</Build-Date> -->
+                                    <Build-Time>${maven.build.timestamp}</Build-Time>
+                                </manifestEntries>
                             </archive>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -94,6 +98,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 

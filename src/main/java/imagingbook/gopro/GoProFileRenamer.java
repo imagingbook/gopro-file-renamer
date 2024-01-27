@@ -24,11 +24,14 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
@@ -67,6 +70,8 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
 public class GoProFileRenamer extends JFrame {
 
     private static final String appTitle = "GoPro File Renamer";
+    private static final String implVersion = getImplementationVersion();
+
     private static final String helpUrl = "https://github.com/imagingbook/gopro-file-renamer?tab=readme-ov-file#gopro-file-renamer";
     private static final Color renameButtonColor = Color.red.darker();
     private static final Color revertButtonColor = Color.green.darker();
@@ -92,7 +97,6 @@ public class GoProFileRenamer extends JFrame {
     private int renamedCount = 0;
     private int errorCount   = 0;
 
-
     private final JLabel startDirLabel;
     private final JTextField startDirField;
     private final JCheckBox checkDryRun, checkRecursive, checkVerbose, checkAbsDirs;
@@ -102,7 +106,7 @@ public class GoProFileRenamer extends JFrame {
 
 
     public GoProFileRenamer() {
-        super(appTitle);
+        super(appTitle + (implVersion != null ? " (" + implVersion + ")" : ""));    // version number only shows when run from JAR
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -211,6 +215,8 @@ public class GoProFileRenamer extends JFrame {
         makeLayout();
         pack();
         setLocationRelativeTo(null);
+
+
     }
 
     private void makeLayout() {
@@ -292,7 +298,10 @@ public class GoProFileRenamer extends JFrame {
     }
 
     private void log(String msg) {
-        this.outputArea.append(msg + "\n");
+        if (msg == null)
+            this.outputArea.append("null\n");
+        else
+            this.outputArea.append(msg + "\n");
     }
 
     // -------------------------------------------------------------------------
@@ -570,6 +579,61 @@ public class GoProFileRenamer extends JFrame {
             return fileName;
         }
         return fileName.substring(0, lastIndex);
+    }
+
+    //----------------------------------------------------------------------------
+
+    /**
+     * Finds the manifest (from META-INF/MANIFEST.MF) of the JAR file
+     * from which {@literal clazz} was loaded.
+     *
+     * See: http://stackoverflow.com/a/1273432
+     * @param clazz A class in the JAR file of interest.
+     * @return A {@link Manifest} object or {@literal null} if {@literal clazz}
+     * was not loaded from a JAR file.
+     */
+    static Manifest getJarManifest(Class<?> clazz) {
+        String className = clazz.getSimpleName() + ".class";
+        String classPath = clazz.getResource(className).toString();
+        //IJ.log("classPath = " + classPath);
+        if (!classPath.startsWith("jar")) { // Class not from JAR
+            return null;
+        }
+        String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
+        Manifest manifest = null;
+        try {
+            manifest = new Manifest(new URL(manifestPath).openStream());
+        } catch (IOException ignore) { }
+        return manifest;
+    }
+
+    String getVersionInfo() {
+        Manifest mf = getJarManifest(this.getClass());
+        if (mf == null) {
+            return "UNKNOWN";
+        }
+        //IJ.log("listing attributes");
+        Attributes attr = mf.getMainAttributes();
+        String version = null;
+        String buildTime = null;
+        try {
+            version = attr.getValue("Implementation-Version");
+            buildTime = attr.getValue("Build-Time");
+        } catch (IllegalArgumentException e) { }
+        return version + " (" + buildTime + ")";
+    }
+
+    static String getImplementationVersion() {
+        Manifest mf = getJarManifest(GoProFileRenamer.class);
+        if (mf == null) {
+            return null;
+        }
+        Attributes attr = mf.getMainAttributes();
+        String version = null;
+        try {
+            version = attr.getValue("Implementation-Version");
+        } catch (IllegalArgumentException e) { }
+        return version;
     }
 
 }

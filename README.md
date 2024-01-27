@@ -75,7 +75,7 @@ Renamed GoPro files can be **restored** to their original names if necessary.
 This should open a GUI window for choosing the root directory of the video files, which includes
 a few options to select. For example (on Win11):
 
-![img.png](docs/images/renamer-gui-data.png)
+![img.png](docs/images/renamer-gui-data-11.png)
 
 * Click `Find` to select the start (root) directory of your GoPro files.
 * Activate `Recursive` to traverse the directory tree recursively (otherwise only the start directory is processed).
