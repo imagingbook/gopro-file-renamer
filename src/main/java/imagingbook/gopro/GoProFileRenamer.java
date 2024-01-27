@@ -1,7 +1,10 @@
 package imagingbook.gopro;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -18,6 +21,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -78,7 +82,7 @@ public class GoProFileRenamer extends JFrame {
     private final JLabel startDirLabel;
     private final JTextField startDirField;
     private final JCheckBox checkDryRun, checkRecursive, checkVerbose, checkAbsDirs;
-    private final JButton buttonFind, buttonRename, buttonRevert, buttonClear, buttonQuit;
+    private final JButton buttonFind, buttonRename, buttonRevert, buttonClear, buttonQuit, buttonHelp;
     private final JTextArea outputArea;
     private final JScrollPane scrollPane;
 
@@ -117,10 +121,28 @@ public class GoProFileRenamer extends JFrame {
 
         buttonClear = new JButton("Clear Output");
         buttonQuit  = new JButton("Quit");
+        buttonHelp  = new JButton();
 
         outputArea  = new JTextArea("", 20, 80);
         outputArea.setEditable(false);
         scrollPane  = new JScrollPane(outputArea);
+
+        // https://docs.oracle.com/javase//7/docs/api/javax/swing/plaf/synth/doc-files/componentProperties.html
+        Icon icon = UIManager.getIcon("OptionPane.informationIcon");
+        buttonHelp.setIcon(icon);
+        buttonHelp.setBorderPainted(false);
+
+        // try {
+        //     System.out.println("resource path = " + this.getClass().getResource(""));
+        //     Image img = ImageIO.read(getClass().getResource("help-icon.png"));
+        //     System.out.println("opened image + " + img);
+        //     // buttonQuit.setIcon(new ImageIcon(img));
+        //     buttonQuit.setIcon(icon);
+        // } catch (Exception ex) {
+        //     System.out.println(ex);
+        // }
+
+
 
         // --------------------------------------------------------------
 
@@ -202,6 +224,7 @@ public class GoProFileRenamer extends JFrame {
                                                 .addComponent(buttonRevert)
                                                 .addComponent(buttonClear)
                                                 .addComponent(buttonQuit)
+                                                .addComponent(buttonHelp)
                                         )
                         )
                         .addComponent(scrollPane)
@@ -224,7 +247,8 @@ public class GoProFileRenamer extends JFrame {
                                 .addComponent(buttonRename)
                                 .addComponent(buttonRevert)
                                 .addComponent(buttonClear)
-                                .addComponent(buttonQuit))
+                                .addComponent(buttonQuit)
+                                .addComponent(buttonHelp))
                 )
                 .addComponent(scrollPane)
         );
