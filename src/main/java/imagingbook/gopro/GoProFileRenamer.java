@@ -1,10 +1,8 @@
 package imagingbook.gopro;
 
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -18,8 +16,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.border.Border;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -27,6 +25,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,8 +69,10 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
 public class GoProFileRenamer extends JFrame {
 
     private static final String appTitle = "GoPro File Renamer";
+    private static final String helpUrl = "https://github.com/imagingbook/gopro-file-renamer?tab=readme-ov-file#gopro-file-renamer";
     private static final Color renameButtonColor = Color.red.darker();
     private static final Color revertButtonColor = Color.green.darker();
+
 
     private String startDir = System.getProperty("user.dir"); //Paths.get("").toAbsolutePath().toString();
     private boolean RECURSIVE = true;
@@ -94,6 +95,10 @@ public class GoProFileRenamer extends JFrame {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) { }
         JFrame.setDefaultLookAndFeelDecorated(true);
+
+        try {
+            setIconImage(ImageIO.read(getClass().getResource("camera-gopro-icon.png")));
+        } catch (IOException ex) { }
 
         startDirLabel = new JLabel("Start directory:");
         startDirField = new JTextField(startDir);
@@ -128,21 +133,8 @@ public class GoProFileRenamer extends JFrame {
         scrollPane  = new JScrollPane(outputArea);
 
         // https://docs.oracle.com/javase//7/docs/api/javax/swing/plaf/synth/doc-files/componentProperties.html
-        Icon icon = UIManager.getIcon("OptionPane.informationIcon");
-        buttonHelp.setIcon(icon);
+        buttonHelp.setIcon(UIManager.getIcon("OptionPane.informationIcon"));
         buttonHelp.setBorderPainted(false);
-
-        // try {
-        //     System.out.println("resource path = " + this.getClass().getResource(""));
-        //     Image img = ImageIO.read(getClass().getResource("help-icon.png"));
-        //     System.out.println("opened image + " + img);
-        //     // buttonQuit.setIcon(new ImageIcon(img));
-        //     buttonQuit.setIcon(icon);
-        // } catch (Exception ex) {
-        //     System.out.println(ex);
-        // }
-
-
 
         // --------------------------------------------------------------
 
@@ -190,6 +182,20 @@ public class GoProFileRenamer extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // System.out.println("cancelButton action event " + e);
                 System.exit(0);
+            }
+        });
+
+        buttonHelp.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (Desktop.isDesktopSupported()) {
+                    Desktop desktop = Desktop.getDesktop();
+                    if (desktop.isSupported(Desktop.Action.BROWSE)) {
+                        try {
+                            desktop.browse(URI.create(helpUrl));
+                        } catch (IOException ex) { }
+                    }
+                }
             }
         });
 
