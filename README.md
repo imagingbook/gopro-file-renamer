@@ -54,18 +54,23 @@ The creation dates of the files are not changed.
 Renamed GoPro files can be **restored** to their original names if necessary.
 
 **Notes:** 
-* This tool only works for files produced with GoPro **Hero6** to **Hero12** (and hopefully later) cams. Earlier models using different file naming conventions
-  are not supported (see https://community.gopro.com/s/article/GoPro-Camera-File-Naming-Convention for details).
-* **No backup copies** of the files are made during renaming because of the large size of the video files. To be safe, users should make their own
+
+* This tool only works for files produced with GoPro **Hero6** to **Hero12** (
+  and hopefully later) cams. Earlier models using different file naming
+  conventions  are not supported (see 
+  https://community.gopro.com/s/article/GoPro-Camera-File-Naming-Convention
+    for details).
+* **No backup copies** of the files are made during renaming because of the
+  large size of the video files. To be safe, users should make their own
   backups before running this program.
 
 ## How to use
 
-* This software should run on Windows, macOS and Linux (currently tested on Windows only).
+* This software should run on Windows, macOS and Linux (untested yet).
 * A Java runtime must be installed (min. Version 1.8) on your machine and the `java` executable must be on the path.
 * Download [**assets/renamer.jar**](https://github.com/imagingbook/gopro-file-renamer/tree/master/assets/renamer.jar) to your local file system. This is an executable
   JAR file which includes all dependencies.
-* Double-click **renamer.jar** file to run the program.
+* Double-click on **renamer.jar** to run the program.
 
 This should open a GUI window for choosing the root directory of the video files, which includes
 a few options to select. For example (on Win11):
