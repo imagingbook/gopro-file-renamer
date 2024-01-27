@@ -85,6 +85,7 @@ a few options to select. For example (on Win11):
 * Click `Revert Files` to restore GoPro files to their original names.
 * Use `Clear Output` to clear the console.
 * Use `Quit` to exit the program.
+* Clicking the information button `i` should open this web page.
 
 ## Run in command window or shell 
 
