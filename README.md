@@ -1,4 +1,4 @@
-# GoPro File Renamer
+# Yet Another GoPro File Renamer
 
 This is a simple Java tool for renaming GoPro files (Hero6 to Hero12).
 
