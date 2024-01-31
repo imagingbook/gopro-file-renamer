@@ -24,14 +24,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
@@ -69,8 +66,12 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
  */
 public class GoProFileRenamer extends JFrame {
 
+    enum ProcessMode {
+        Rename, Revert;
+    }
+
     private static final String appTitle = "GoPro File Renamer";
-    private static final String implVersion = getJarImplementationVersion();
+    private static final String implVersion = JarUtils.getJarImplementationVersion(GoProFileRenamer.class);
 
     private static final String helpUrl = "https://github.com/imagingbook/gopro-file-renamer?tab=readme-ov-file#gopro-file-renamer";
     private static final Color renameButtonColor = Color.red.darker();
@@ -92,6 +93,10 @@ public class GoProFileRenamer extends JFrame {
     private boolean VERBOSE   = true;
     private boolean DRYRUN    = true;
     private boolean ABSDIRS   = false;
+
+    private ProcessMode mode = ProcessMode.Rename;
+    private FileNameFormat renamer = null;
+
     private int checkedCount = 0;
     private int matchedCount = 0;
     private int renamedCount = 0;
@@ -170,21 +175,23 @@ public class GoProFileRenamer extends JFrame {
         buttonRename.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                doRename();
+                mode = ProcessMode.Rename;
+                processFiles();
             }
         });
 
         buttonRevert.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                doRevert();
+                mode = ProcessMode.Revert;
+                processFiles();
             }
         });
 
         buttonClear.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                clearOutput();
+                clearTextOutput();
             }
         });
 
@@ -212,14 +219,12 @@ public class GoProFileRenamer extends JFrame {
 
         // --------------------------------------------------------------
 
-        makeLayout();
+        makeGuiLayout();
         pack();
         setLocationRelativeTo(null);
-
-
     }
 
-    private void makeLayout() {
+    private void makeGuiLayout() {
         GroupLayout layout = new GroupLayout(this.getContentPane());
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
@@ -279,7 +284,7 @@ public class GoProFileRenamer extends JFrame {
         this.getContentPane().setLayout(layout);
     }
 
-    private void clearOutput() {
+    private void clearTextOutput() {
         outputArea.setText(null);
     }
 
@@ -304,21 +309,12 @@ public class GoProFileRenamer extends JFrame {
 
     // -------------------------------------------------------------------------
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new GoProFileRenamer().setVisible(true);
-            }
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // -------------------------------------------------------------------------
-
-    void doRename() {
+    void processFiles() {
         updateSettings();
         File dir = new File(startDir);
+        this.renamer = (mode.equals(ProcessMode.Rename)) ?
+                new FileNameFormat.OriginalGoproFormat() :
+                new FileNameFormat.RenamedGoproFormat();
 
         if (!dir.isDirectory()) {
             JOptionPane.showMessageDialog(null, "Path is not a directory:\n" + startDir);
@@ -340,7 +336,7 @@ public class GoProFileRenamer extends JFrame {
         }
 
         log("Renaming GoPro files " + (DRYRUN ? "(DRY RUN) ..." : "..."));
-        renameDirectory(dir);
+        processDirectory(dir);
         if (checkedCount == 0) {
             System.out.println("Found no files to check!");
         }
@@ -353,47 +349,10 @@ public class GoProFileRenamer extends JFrame {
         }
     }
 
-    void doRevert() {
-        updateSettings();
-        File dir = new File(startDir);
-
-        if (!dir.isDirectory()) {
-            JOptionPane.showMessageDialog(null, "Path is not a directory:\n" + startDir);
-            return;
-        }
-
-        String dlgTitle =  appTitle + (DRYRUN ? " (Dry Run)" : "");
-        int result = JOptionPane.showConfirmDialog(null,
-                (DRYRUN ?
-                        "DRY RUN ONLY, no files will be reverted." :
-                        "About to revert files.")
-                        + "\nProceed?",
-                dlgTitle,
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-        // 0=OK
-        if (result != 0) {
-            return;
-        }
-
-        log("Reverting GoPro files " + (DRYRUN ? "(DRY RUN) ..." : "..."));
-        revertDirectory(dir);
-        if (checkedCount == 0) {
-            System.out.println("Found no files to check!");
-        }
-        else {
-            log("------------------------------");
-            log("Files checked:  " + checkedCount);
-            log("Files matched:  " + matchedCount);
-            log("Files reverted: " + renamedCount);
-            log("File errors:    " + errorCount);
-        }
-    }
-
     /**
      * Recursively walk a directory tree and rename all GoPro files found.
      */
-    private void renameDirectory(File dir) {
+    private void processDirectory(File dir) {
         log("Directory: " + (ABSDIRS ? dir.getAbsolutePath() : dir.getName()));
         File[] allfiles = dir.listFiles(new FileFilter() {
             @Override
@@ -414,8 +373,8 @@ public class GoProFileRenamer extends JFrame {
             }
             else {
                 checkedCount++;
-                if (isGoProFileName(file)) {
-                    renameGoproFile(file);
+                if (renamer.matchFileName(file.getName())) {
+                    renameFile(file);
                 } else {
                     if (VERBOSE) log("    ignoring " + file.getName());
                 }
@@ -424,108 +383,19 @@ public class GoProFileRenamer extends JFrame {
 
         if (RECURSIVE) {
             for (File sdir : subdirs) {
-                renameDirectory(sdir);
+                processDirectory(sdir);
             }
         }
-    }
-
-    /**
-     * Recursively walk a directory tree and revert all renamed GoPro files found.
-     */
-    private void revertDirectory(File dir) {
-        log("Directory: " + (ABSDIRS ? dir.getAbsolutePath() : dir.getName()));
-        File[] allfiles = dir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return !file.isHidden();	// skip hidden files and directories
-            }
-        });
-
-        if (allfiles == null)	// this happens if 'startDir' is not a directory
-            return;
-
-        List<File> subdirs = new ArrayList<>();
-
-        // process all files in current directory:
-        for (File file : allfiles) {
-            if (file.isDirectory()) {
-                subdirs.add(file);
-            }
-            else {
-                checkedCount++;
-                if (isRenamedFileName(file)) {
-                    revertGoproFile(file);
-                } else {
-                    if (VERBOSE) log("    ignoring " + file.getName());
-                }
-            }
-        }
-
-        if (RECURSIVE) {
-            for (File sdir : subdirs) {
-                revertDirectory(sdir);
-            }
-        }
-    }
-
-    /**
-     * Checks if the given file is a valid GoPro file. That is, its name has
-     * the form 'GHzzxxxx.ext' or 'GLzzxxxx.ext', where 'xxx' is a 4-digit
-     * 'video' number and 'zz' is a 2-digit 'chapter' number. The file extension
-     * 'ext' is irrelevant.
-     * @param f the file to be tested.
-     * @return {@code true} if the file is a GoPro file, {@code false} otherwise.
-     */
-    boolean isGoProFileName(File f) {
-        String fName = f.getName();				// e.g., "GH010527.MP4"
-        String rName = getFileRawName(fName);	// e.g., "GH010527"
-        return goproPattern.matcher(rName).matches();
-    }
-
-    boolean isRenamedFileName(File f) {
-        String fName = f.getName();				// e.g., "052701-GH010527.MP4"
-        String rName = getFileRawName(fName);	// e.g., "052701-GH010527"
-
-        if (!renamedPattern.matcher(rName).matches())
-            return false;
-
-        String videoNo = rName.substring(0, 4);		// "0527"
-        if (!videoNo.equals(rName.substring(11, 15)))
-            return false;
-
-        String chapNo = fName.substring(4, 6);		// "01"
-        if (!chapNo.equals(rName.substring(9, 11)))
-            return false;
-
-        return true;
-    }
-
-    /**
-     * Maps an existing GoPro file name to its new name by prepending the
-     * video and chapter numbers to the original file name, for example,
-     * "GH010446.MP4" becomes "044601-GH010446.MP4".
-     * @param fName the original file name
-     * @return the modified file name
-     */
-    String mapGoproFileName(String fName) {	// "GH010446.MP4"
-        // String rName = getFileRawName(fName);	// "GH010446"
-        String videoNo = fName.substring(4, 8);		// "0446"
-        String chapNo = fName.substring(2, 4);		// "01"
-        return videoNo + chapNo + "-" + fName;		// "044601-GH010446.MP4"
-    }
-
-    String unmapGoproFileName(String fName) {	    // "044601-GH010446.MP4"
-        return fName.substring(7);		            // "GH010446.MP4"
     }
 
     /**
      * Tries to rename the given GoPro file according to our conventions.
-     * @param f a file for which {@link #isGoProFileName(File)} returns {@code true}.
+     * @param f a file with matching name.
      * @return {@code true} if the file was properly renamed, {@code false} otherwise.
      */
-    private boolean renameGoproFile(File f) {
+    private boolean renameFile(File f) {
         String oldname = f.getName();
-        String newname = mapGoproFileName(oldname);
+        String newname = renamer.mapFileName(oldname);
 
         // now rename that file:
         Path source = Paths.get(f.getAbsolutePath());
@@ -544,78 +414,16 @@ public class GoProFileRenamer extends JFrame {
         return true;
     }
 
-    private boolean revertGoproFile(File f) {
-        String oldname = f.getName();
-        String newname = unmapGoproFileName(oldname);
+// -------------------------------------------------------------------------
 
-        // now rename that file:
-        matchedCount++;
-        Path source = Paths.get(f.getAbsolutePath());
-        if (VERBOSE) log("   reverting " + oldname + " -> " +  newname);
-        if (!DRYRUN) {
-            try {
-                Files.move(source, source.resolveSibling(newname));
-                renamedCount++;
-            } catch (IOException e) {
-                log("ERROR: could not revert file " + oldname);
-                errorCount++;
-                return false;
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new GoProFileRenamer().setVisible(true);
             }
-        }
-        return true;
+        });
     }
 
-    /**
-     * Strips the file extension from the given file name, for example,
-     * "GH010446.MP4" yields "GH010446".
-     * @param fileName the file name
-     * @return the raw file name without extension
-     */
-    String getFileRawName(String fileName) {
-        int lastIndex = fileName.lastIndexOf('.');
-        if (lastIndex == -1) {	// fileName has no extension
-            return fileName;
-        }
-        return fileName.substring(0, lastIndex);
-    }
-
-    //----------------------------------------------------------------------------
-
-    /**
-     * Finds the manifest (from META-INF/MANIFEST.MF) of the JAR file
-     * from which {@literal clazz} was loaded.
-     *
-     * See: http://stackoverflow.com/a/1273432
-     * @param clazz A class in the JAR file of interest.
-     * @return A {@link Manifest} object or {@literal null} if {@literal clazz}
-     * was not loaded from a JAR file.
-     */
-    static Manifest getJarManifest(Class<?> clazz) {
-        String className = clazz.getSimpleName() + ".class";
-        String classPath = clazz.getResource(className).toString();
-        if (!classPath.startsWith("jar")) { // Class not from JAR
-            return null;
-        }
-        String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1)
-                + "/META-INF/MANIFEST.MF";
-        Manifest manifest = null;
-        try {
-            manifest = new Manifest(new URL(manifestPath).openStream());
-        } catch (IOException ignore) { }
-        return manifest;
-    }
-
-    static String getJarImplementationVersion() {
-        Manifest mf = getJarManifest(GoProFileRenamer.class);
-        if (mf == null) {
-            return null;
-        }
-        Attributes attr = mf.getMainAttributes();
-        String version = null;
-        try {
-            version = attr.getValue("Implementation-Version");
-        } catch (IllegalArgumentException e) { }
-        return version;
-    }
 
 }
