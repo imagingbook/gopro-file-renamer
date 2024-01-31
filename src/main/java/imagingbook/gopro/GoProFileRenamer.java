@@ -24,11 +24,14 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
@@ -67,7 +70,7 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
 public class GoProFileRenamer extends JFrame {
 
     private static final String appTitle = "GoPro File Renamer";
-    private static final String implVersion = Utils.getImplementationVersion();
+    private static final String implVersion = getJarImplementationVersion();
 
     private static final String helpUrl = "https://github.com/imagingbook/gopro-file-renamer?tab=readme-ov-file#gopro-file-renamer";
     private static final Color renameButtonColor = Color.red.darker();
@@ -286,12 +289,10 @@ public class GoProFileRenamer extends JFrame {
         VERBOSE = checkVerbose.isSelected();
         DRYRUN = checkDryRun.isSelected();
         ABSDIRS = checkAbsDirs.isSelected();
-
         checkedCount = 0;
         matchedCount = 0;
         renamedCount = 0;
         errorCount = 0;
-
     }
 
     private void log(String msg) {
@@ -580,6 +581,41 @@ public class GoProFileRenamer extends JFrame {
 
     //----------------------------------------------------------------------------
 
+    /**
+     * Finds the manifest (from META-INF/MANIFEST.MF) of the JAR file
+     * from which {@literal clazz} was loaded.
+     *
+     * See: http://stackoverflow.com/a/1273432
+     * @param clazz A class in the JAR file of interest.
+     * @return A {@link Manifest} object or {@literal null} if {@literal clazz}
+     * was not loaded from a JAR file.
+     */
+    static Manifest getJarManifest(Class<?> clazz) {
+        String className = clazz.getSimpleName() + ".class";
+        String classPath = clazz.getResource(className).toString();
+        if (!classPath.startsWith("jar")) { // Class not from JAR
+            return null;
+        }
+        String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1)
+                + "/META-INF/MANIFEST.MF";
+        Manifest manifest = null;
+        try {
+            manifest = new Manifest(new URL(manifestPath).openStream());
+        } catch (IOException ignore) { }
+        return manifest;
+    }
 
+    static String getJarImplementationVersion() {
+        Manifest mf = getJarManifest(GoProFileRenamer.class);
+        if (mf == null) {
+            return null;
+        }
+        Attributes attr = mf.getMainAttributes();
+        String version = null;
+        try {
+            version = attr.getValue("Implementation-Version");
+        } catch (IllegalArgumentException e) { }
+        return version;
+    }
 
 }
