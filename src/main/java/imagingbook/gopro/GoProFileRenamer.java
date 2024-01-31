@@ -29,8 +29,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
+import static imagingbook.gopro.JarUtils.getImplementationVersion;
+import static imagingbook.gopro.JarUtils.getManifest;
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.CENTER;
 import static javax.swing.GroupLayout.Alignment.LEADING;
@@ -72,7 +73,7 @@ public class GoProFileRenamer extends JFrame {
 
     private static final String appTitle = "GoPro File Renamer";
     private static final String helpUrl = "https://github.com/imagingbook/gopro-file-renamer?tab=readme-ov-file#gopro-file-renamer";
-    private static final String implVersion = JarUtils.getJarImplementationVersion(GoProFileRenamer.class);
+    private static final String implVersion = getImplementationVersion(getManifest(GoProFileRenamer.class));
     private static final Color renameButtonColor = Color.red.darker();
     private static final Color revertButtonColor = Color.green.darker();
 
@@ -97,9 +98,9 @@ public class GoProFileRenamer extends JFrame {
     private final JTextArea outputArea;
     private final JScrollPane scrollPane;
 
-
     public GoProFileRenamer() {
-        super(appTitle + (implVersion != null ? " (" + implVersion + ")" : ""));    // version number only shows when run from JAR
+        // version number only shows when run from JAR:
+        super(appTitle + " (" + (implVersion != null ? implVersion : "no version") + ")");
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
