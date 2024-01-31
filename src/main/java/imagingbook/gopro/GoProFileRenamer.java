@@ -18,12 +18,11 @@ import javax.swing.WindowConstants;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,10 +55,10 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
  * {@code .MP4},
  * {@code .THM},
  * {@code .LRV} files.
- *
+ * <p>
  * Note that this only works for files produced with GoPro Hero6 to Hero12 cams.
  * Earlier models with different file naming conventions are not supported
- * (see https://community.gopro.com/s/article/GoPro-Camera-File-Naming-Convention
+ * (see <a href="https://community.gopro.com/s/article/GoPro-Camera-File-Naming-Convention">...</a>
  * for details).
  *
  * @author wilbur@ieee.org
@@ -67,8 +66,8 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
  */
 public class GoProFileRenamer extends JFrame {
 
-    enum ProcessMode {
-        Rename, Revert;
+    private enum ProcessMode {
+        Rename, Revert
     }
 
     private static final String appTitle = "GoPro File Renamer";
@@ -84,7 +83,7 @@ public class GoProFileRenamer extends JFrame {
     private boolean ABSDIRS   = false;
 
     private ProcessMode mode = ProcessMode.Rename;
-    private FileNameFormat renamer = null;
+    private FileNameFormat nameformat = null;
 
     private int checkedCount = 0;
     private int matchedCount = 0;
@@ -104,12 +103,15 @@ public class GoProFileRenamer extends JFrame {
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) { }
+        } catch (Exception ignored) { }
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         try {
-            this.setIconImage(ImageIO.read(getClass().getResource("camera-gopro-icon.png")));
-        } catch (IOException ex) { }
+            URL url = getClass().getResource("camera-gopro-icon.png");
+            if (url != null) {
+                this.setIconImage(ImageIO.read(url));
+            }
+        } catch (IOException ignored) { }
 
         startDirLabel = new JLabel("Start directory:");
         startDirField = new JTextField(startDir);
@@ -145,61 +147,39 @@ public class GoProFileRenamer extends JFrame {
 
         // --------------------------------------------------------------
 
-        buttonFind.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFileChooser chooser = new JFileChooser(startDir);
-                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                chooser.setDialogTitle("Select the root directory");
-                chooser.setApproveButtonText("Select");
-                int returnVal = chooser.showOpenDialog(null);
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    File f = chooser.getSelectedFile();
-                    startDirField.setText(f.getAbsolutePath());
-                }
+        buttonFind.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser(startDir);
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setDialogTitle("Select the root directory");
+            chooser.setApproveButtonText("Select");
+            int returnVal = chooser.showOpenDialog(null);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File f = chooser.getSelectedFile();
+                startDirField.setText(f.getAbsolutePath());
             }
         });
 
-        buttonRename.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mode = ProcessMode.Rename;
-                processFiles();
-            }
+        buttonRename.addActionListener(e -> {
+            mode = ProcessMode.Rename;
+            processFiles();
         });
 
-        buttonRevert.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mode = ProcessMode.Revert;
-                processFiles();
-            }
+        buttonRevert.addActionListener(e -> {
+            mode = ProcessMode.Revert;
+            processFiles();
         });
 
-        buttonClear.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clearTextOutput();
-            }
-        });
+        buttonClear.addActionListener(e -> clearTextOutput());
 
-       buttonQuit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
+        buttonQuit.addActionListener(e -> System.exit(0));
 
-        buttonHelp.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (Desktop.isDesktopSupported()) {
-                    Desktop desktop = Desktop.getDesktop();
-                    if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                        try {
-                            desktop.browse(URI.create(helpUrl));
-                        } catch (IOException ex) { }
-                    }
+        buttonHelp.addActionListener(e -> {
+            if (Desktop.isDesktopSupported()) {
+                Desktop desktop = Desktop.getDesktop();
+                if (desktop.isSupported(Desktop.Action.BROWSE)) {
+                    try {
+                        desktop.browse(URI.create(helpUrl));
+                    } catch (IOException ignored) { }
                 }
             }
         });
@@ -299,7 +279,7 @@ public class GoProFileRenamer extends JFrame {
     void processFiles() {
         updateSettings();
         File dir = new File(startDir);
-        this.renamer = (mode.equals(ProcessMode.Rename)) ?
+        this.nameformat = (mode.equals(ProcessMode.Rename)) ?
                 new FileNameFormat.OriginalGoproFormat() :
                 new FileNameFormat.RenamedGoproFormat();
 
@@ -356,14 +336,16 @@ public class GoProFileRenamer extends JFrame {
         // process all files in current directory:
         for (File file : allfiles) {
             if (file.isDirectory()) {
-                subdirs.add(file);
+                subdirs.add(file);  // add sub-directory to be processed later
             }
             else {
                 checkedCount++;
-                if (renamer.matchFileName(file.getName())) {
+                String fname = file.getName();
+                if (nameformat.matchFileName(fname)) {
+                    matchedCount++;
                     renameFile(file);
                 } else {
-                    if (VERBOSE) log("    ignoring " + file.getName());
+                    if (VERBOSE) log("    ignoring " + fname);
                 }
             }
         }
@@ -382,11 +364,8 @@ public class GoProFileRenamer extends JFrame {
      */
     private boolean renameFile(File f) {
         String oldname = f.getName();
-        String newname = renamer.mapFileName(oldname);
-
-        // now rename that file:
+        String newname = nameformat.mapFileName(oldname);
         Path source = Paths.get(f.getAbsolutePath());
-        matchedCount++;
         if (VERBOSE) log("   renaming " + oldname + " -> " +  newname);
         if (!DRYRUN) {
             try {
