@@ -68,8 +68,8 @@ Renamed GoPro files can be **restored** to their original names if necessary.
 
 * This software should run on Windows, macOS and Linux (untested yet).
 * A Java runtime must be installed (min. Version 1.8) on your machine and the `java` executable must be on the path.
-* Download [**assets/renamer.jar**](https://github.com/imagingbook/gopro-file-renamer/releases/latest/renamer.jar) to your local file system. This is an executable
-  JAR file which includes all dependencies.
+* Download [**renamer.jar**](https://github.com/imagingbook/gopro-file-renamer/releases/latest/download/renamer.jar)
+  from the latest release to your local file system. This is an executable JAR file which includes all dependencies.
 * Double-click on **renamer.jar** to run the program.
 
 This should open a GUI window for choosing the root directory of the video files, which includes
