@@ -62,7 +62,7 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
  * for details).
  *
  * @author wilbur@ieee.org
- * @version 2024/01/26
+ * @version 2024/01/31
  */
 public class GoProFileRenamer extends JFrame {
 
@@ -71,22 +71,10 @@ public class GoProFileRenamer extends JFrame {
     }
 
     private static final String appTitle = "GoPro File Renamer";
-    private static final String implVersion = JarUtils.getJarImplementationVersion(GoProFileRenamer.class);
-
     private static final String helpUrl = "https://github.com/imagingbook/gopro-file-renamer?tab=readme-ov-file#gopro-file-renamer";
+    private static final String implVersion = JarUtils.getJarImplementationVersion(GoProFileRenamer.class);
     private static final Color renameButtonColor = Color.red.darker();
     private static final Color revertButtonColor = Color.green.darker();
-
-    // Admissible raw GoPro file names are GHzzxxxx, GLzzxxxx and GXzzxxxx,
-    // where zz and xxxx are all decimal digits.
-    // The associated regular expression pattern is:
-    private final String gpPat = "G[HLX]\\d{6}";    // origininal GoPro file pattern
-    private final Pattern goproPattern = Pattern.compile(gpPat);
-
-    // Analogously, this is the pattern for detecting GoPro files that
-    // have been renamed by this program:
-    private final String rnPat = "\\d{6}-" + gpPat;
-    private final Pattern renamedPattern = Pattern.compile(rnPat);
 
     private String startDir = System.getProperty("user.dir"); //Paths.get("").toAbsolutePath().toString();
     private boolean RECURSIVE = true;
@@ -159,7 +147,6 @@ public class GoProFileRenamer extends JFrame {
         buttonFind.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("chooseButton action event " + e);
                 JFileChooser chooser = new JFileChooser(startDir);
                 chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 chooser.setDialogTitle("Select the root directory");
@@ -198,7 +185,6 @@ public class GoProFileRenamer extends JFrame {
        buttonQuit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // System.out.println("cancelButton action event " + e);
                 System.exit(0);
             }
         });
@@ -338,7 +324,7 @@ public class GoProFileRenamer extends JFrame {
         log("Renaming GoPro files " + (DRYRUN ? "(DRY RUN) ..." : "..."));
         processDirectory(dir);
         if (checkedCount == 0) {
-            System.out.println("Found no files to check!");
+            log("Found no files to check!");
         }
         else {
             log("------------------------------");
@@ -424,6 +410,5 @@ public class GoProFileRenamer extends JFrame {
             }
         });
     }
-
-
+    
 }
