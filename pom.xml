@@ -6,7 +6,7 @@
 
     <groupId>com.imagingbook</groupId>
     <artifactId>gopro-file-renamer</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
 
     <description>
@@ -42,13 +42,6 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.miglayout</groupId>
-            <artifactId>miglayout-swing</artifactId>
-            <version>11.2</version>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -103,3 +96,6 @@
     </build>
 
 </project>
+
+<!-- check for plugin updates:
+    mvn versions:display-dependency-updates -->
