@@ -103,7 +103,7 @@ There is also the shell script that was used to create these files.
 
 ## How to build
 
-This is a Maven-based Java project, which is built by simply running
+This is a [Maven](https://maven.apache.org/)-based Java project, which is built by simply running
 ```
 mvn clean package
 ```
